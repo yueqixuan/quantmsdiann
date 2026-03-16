@@ -17,7 +17,7 @@ process PMULTIQC {
 
     script:
     def args = task.ext.args ?: ''
-    def disable_pmultiqc = (params.enable_pmultiqc) && (params.export_mztab) ? "--quantms_plugin" : ""
+    def disable_pmultiqc = (params.enable_pmultiqc) ? "--quantms_plugin" : ""
     def disable_table_plots = (params.enable_pmultiqc) && (params.skip_table_plots) ? "--disable_table" : ""
     def disable_idxml_index = (params.enable_pmultiqc) && (params.pmultiqc_idxml_skip) ? "--ignored_idxml" : ""
     def contaminant_affix = params.contaminant_string ? "--contaminant_affix ${params.contaminant_string}" : ""
@@ -39,7 +39,6 @@ process PMULTIQC {
         ${disable_table_plots} \\
         ${disable_idxml_index} \\
         ${contaminant_affix} \\
-        --quantification_method $params.quantification_method \\
         ./results \\
         -o .
 
