@@ -19,7 +19,6 @@ include { CREATE_INPUT_CHANNEL } from '../subworkflows/local/create_input_channe
 
 // Modules import from the pipeline
 include { PMULTIQC as SUMMARY_PIPELINE } from '../modules/local/pmultiqc/main'
-include { GENERATE_DECOY_DATABASE } from '../modules/local/openms/generate_decoy_database/main'
 
 /*
 ========================================================================================
@@ -93,23 +92,6 @@ workflow QUANTMSDIANN {
         | combine(ch_db_for_decoy_creation)
         | map { item -> item[-1] }
         | set { ch_db_for_decoy_creation_or_null }
-
-    ch_searchengine_in_db = params.add_decoys ? channel.empty() : channel.fromPath(params.database)
-    if (params.add_decoys) {
-        GENERATE_DECOY_DATABASE(
-            ch_db_for_decoy_creation_or_null
-        )
-        ch_searchengine_in_db = GENERATE_DECOY_DATABASE.out.db_decoy
-        ch_versions = ch_versions.mix(GENERATE_DECOY_DATABASE.out.versions)
-    }
-
-    // Check that there is no duplicated search engines
-    if (params.search_engines) {
-        search_engines = params.search_engines.tokenize(',')
-        if (search_engines.size() != search_engines.unique().size()) {
-            error("Duplicated search engines in the search_engines parameter: ${params.search_engines}")
-        }
-    }
 
     DIA(
         ch_fileprep_result.dia,
