@@ -358,7 +358,7 @@
                     "default": true
                 },
                 "pg_level": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "Controls the protein inference mode",
                     "fa_icon": "fas fa-list-ol",
                     "enum": [0, 1, 2],
@@ -417,7 +417,7 @@
                 },
                 "skip_preliminary_analysis": {
                     "type": "boolean",
-                    "description": "Skip the preliminary analysis step, thus use the passed spectral library as-is insted of generating a local concensus library.",
+                    "description": "Skip the preliminary analysis step, thus use the passed spectral library as-is instead of generating a local concensus library.",
                     "fa_icon": "fas fa-forward",
                     "hidden": false
                 },
@@ -473,8 +473,8 @@
         "statistical_post_processing": {
             "title": "Statistical post-processing",
             "type": "object",
-            "description": "",
-            "default": "Parameters for the R script using MSstats for statistical post processing and quantification visualization.",
+            "description": "Parameters for the R script using MSstats for statistical post processing and quantification visualization.",
+            "default": "",
             "properties": {
                 "skip_post_msstats": {
                     "type": "boolean",
@@ -697,7 +697,7 @@
                 },
                 "trace_report_suffix": {
                     "type": "string",
-                    "fa_icon": "far calendar",
+                    "fa_icon": "far fa-calendar",
                     "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
                     "hidden": true
                 },
