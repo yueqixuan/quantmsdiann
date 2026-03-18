@@ -28,7 +28,7 @@ This is **non-negotiable**. All code must pass formatting and style checks befor
 - QuantUMS quantification method (DIA-NN >= 1.9.2)
 - Parquet-native output with decoy reporting (DIA-NN >= 2.0)
 - MSstats-compatible output generation (via quantms-utils conversion, no MSstats analysis)
-- Quality control with pMultiQC
+- Quality control with pmultiqc
 - Complies with nf-core standards
 
 **Repository:** https://github.com/bigbio/quantmsdiann
@@ -87,7 +87,6 @@ quantmsdiann/
 │   ├── tests/                 # Test profile configs (DIA only)
 │   └── diann_versions/        # DIA-NN version-override configs for merge matrix
 ├── tests/                     # nf-test test cases
-├── bin/                       # Utility scripts
 └── assets/                    # Pipeline assets and schemas
 ```
 
@@ -106,7 +105,7 @@ The pipeline executes the following steps:
 7. **Individual Analysis** - Per-file search with empirical library (optional, for large datasets)
 8. **Final Quantification** - Summary quantification with protein/peptide/gene matrices
 9. **MSstats Format Conversion** - Converts DIA-NN report to MSstats-compatible CSV (`quantmsutilsc diann2msstats`)
-10. **pMultiQC** - Quality control reporting
+10. **pmultiqc** - Quality control reporting
 
 ### DIA-NN Version-Specific Features
 

@@ -47,7 +47,7 @@ nextflow run bigbio/quantmsdiann \
 
 | File                                      | Description                         |
 | ----------------------------------------- | ----------------------------------- |
-| `quant_tables/diann_report.tsv`           | Main DIA-NN peptide/protein report  |
+| `quant_tables/diann_report.{tsv,parquet}` | Main DIA-NN peptide/protein report  |
 | `quant_tables/diann_report.pg_matrix.tsv` | Protein group quantification matrix |
 | `quant_tables/diann_report.pr_matrix.tsv` | Precursor quantification matrix     |
 | `quant_tables/diann_report.gg_matrix.tsv` | Gene group quantification matrix    |
@@ -80,7 +80,7 @@ quantmsdiann is developed and maintained by:
 - [Dai Chengxin](https://github.com/daichengxin) (Beijing Proteome Research Center)
 - [Julianus Pfeuffer](https://github.com/jpfeuffer) (Freie Universitat Berlin)
 - [Vadim Demichev](https://github.com/vdemichev) (Charite Universitaetsmedizin Berlin)
-- [Qi-Xuan Yue](https://github.com/yueqixuan)
+- [Qi-Xuan Yue](https://github.com/yueqixuan) (Chongqing University of Posts and Telecommunications)
 
 ## License
 

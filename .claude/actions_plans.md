@@ -166,7 +166,7 @@
 | 2026-03-17 | Created roadmap from quantms dev comparison      | Align refactoring priorities                                                 |
 | 2026-03-17 | Completed Phase 1 cleanup                        | Remove all non-DIA artifacts                                                 |
 | 2026-03-17 | Keep DIANN_MSSTATS, remove MSSTATS_LFQ           | Generate MSstats-compatible CSV but don't run MSstats analysis in-pipeline   |
-| 2026-03-17 | Removed Phases 4-6 (quantification, QC, interop) | pMultiQC already covers QC; downstream analysis/interop out of scope for now |
+| 2026-03-17 | Removed Phases 4-6 (quantification, QC, interop) | pmultiqc already covers QC; downstream analysis/interop out of scope for now |
 | 2026-03-18 | Version-aware testing with conditional CI         | Each feature maps to min DIA-NN version; PRs only run affected feature tests |
 | 2026-03-18 | DIA-NN containers are private (license)           | Academic-only license; GHCR_USERNAME + GHCR_TOKEN secrets required           |
 | 2026-03-18 | Created DIA-NN 1.9.2 Dockerfile                  | Needed for QuantUMS feature testing at minimum supported version             |
