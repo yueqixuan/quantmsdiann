@@ -128,7 +128,7 @@ def toolCitationText() {
             "DIA-NN (Demichev et al. 2020),",
             "OpenMS (Röst et al. 2016),",
             "ThermoRawFileParser (Hulstaert et al. 2020),",
-            "pMultiQC (Perez-Riverol et al. 2024)",
+            "pmultiqc (Perez-Riverol et al. 2024)",
             "."
         ].join(' ').trim()
 
@@ -140,7 +140,7 @@ def toolBibliographyText() {
             "<li>Demichev V, Messner CB, Vernardis SI, Lilley KS, Ralser M. (2020). DIA-NN: neural networks and interference correction enable deep proteome coverage in high throughput. Nature Methods, 17(1), 41-44. doi: 10.1038/s41592-019-0638-x</li>",
             "<li>Röst HL, Sachsenberg T, Aiche S, Bielow C, Weisser H, Aicheler F, Andreotti S, Ehrlich HC, Gutenbrunner P, Kenar E, Liang X, Nahnsen S, Nilse L, Pfeuffer J, Rosenberger G, Rurik M, Schmitt U, Veit J, Walzer M, Wojnar D, Wolski WE, Schilling O, Choudhary JS, Malmström L, Aebersold R, Reinert K, Kohlbacher O. (2016). OpenMS: a flexible open-source software platform for mass spectrometry data analysis. Nature Methods, 13(9), 741–748. doi: 10.1038/nmeth.3959</li>",
             "<li>Hulstaert N, Shofstahl J, Sachsenberg T, Walzer M, Barsnes H, Martens L, Perez-Riverol Y. (2020). ThermoRawFileParser: Modular, Scalable, and Cross-Platform RAW File Conversion. Journal of Proteome Research, 19(1), 537-542. doi: 10.1021/acs.jproteome.9b00328</li>",
-            "<li>Perez-Riverol Y, Moreno P, da Veiga Leprevost F, Csordas A, Bai J, Carver J, Hewapathirana S, Kundu DJ, Inuganti A, Griss J, Mayer G, Eisenacher M, Pérez E, Uszkoreit J, Pfeuffer J, Sachsenberg T, Yilmaz S, Tiwary S, Cox J, Audain E, Walzer M, Jarnuczak AF, Ternent T, Brazma A, Vizcaíno JA. (2024). pMultiQC: a comprehensive tool for quality control of proteomics data. Nature Methods, 21(1), 1-2. doi: 10.1038/s41592-023-02125-1</li>"
+            "<li>Perez-Riverol Y, Moreno P, da Veiga Leprevost F, Csordas A, Bai J, Carver J, Hewapathirana S, Kundu DJ, Inuganti A, Griss J, Mayer G, Eisenacher M, Pérez E, Uszkoreit J, Pfeuffer J, Sachsenberg T, Yilmaz S, Tiwary S, Cox J, Audain E, Walzer M, Jarnuczak AF, Ternent T, Brazma A, Vizcaíno JA. (2024). pmultiqc: a comprehensive tool for quality control of proteomics data. Nature Methods, 21(1), 1-2. doi: 10.1038/s41592-023-02125-1</li>"
         ].join(' ').trim()
 
     return reference_text
