@@ -409,6 +409,12 @@
                     "help_text": "Sets the DIA-NN parameter --quant-params. Provide previously obtained QuantUMS parameters to use instead of training new ones.",
                     "hidden": false
                 },
+                "diann_no_peptidoforms": {
+                    "type": "boolean",
+                    "description": "Set no-peptidoforms mode: disables automatic peptidoform scoring when variable modifications are declared (DIA-NN: not recommended)",
+                    "fa_icon": "far fa-check-square",
+                    "default": false
+                },
                 "skip_preliminary_analysis": {
                     "type": "boolean",
                     "description": "Skip the preliminary analysis step, thus use the passed spectral library as-is instead of generating a local concensus library.",
