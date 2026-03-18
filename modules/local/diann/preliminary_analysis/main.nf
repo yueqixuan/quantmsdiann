@@ -38,6 +38,7 @@ process PRELIMINARY_ANALYSIS {
     // Performance flags for preliminary analysis calibration step
     quick_mass_acc = params.quick_mass_acc ? "--quick-mass-acc" : ""
     performance_flags = params.performance_mode ? "--min-corr 2 --corr-diff 1 --time-corr-only" : ""
+    diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
 
     // I am using here the ["key"] syntax, since the preprocessed meta makes
     // was evaluating to null when using the dot notation.
@@ -74,6 +75,7 @@ process PRELIMINARY_ANALYSIS {
             ${mass_acc} \\
             ${quick_mass_acc} \\
             ${performance_flags} \\
+            ${diann_no_peptidoforms} \\
             \${mod_flags} \\
             $args
 
