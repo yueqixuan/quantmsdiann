@@ -1,22 +1,20 @@
-name: nf-core extended CI
+name: nf-core merge CI
+# Full version × feature matrix — runs when merging dev → master.
 # Job dependency chain:
-#   test-default (1.8.1, fast, public) → test-latest (2.2.0, all features)
-#                                      → test-singularity (1.8.1, Singularity)
-# If test-default fails, downstream jobs are skipped to save resources.
+#   test-core-public (1.8.1, fast) → test-core-private (2.1.0, 2.2.0)
+#                                  → test-features-matrix (QuantUMS, Parquet × versions)
+# If the fast 1.8.1 tests fail, all downstream jobs are skipped.
 on:
-  push:
-    branches:
-      - dev
-      - master
   pull_request:
+    branches:
+      - master
+      - main
   release:
     types: [published]
   workflow_dispatch:
 
 env:
   NXF_ANSI_LOG: false
-  NXF_SINGULARITY_CACHEDIR: ${{ github.workspace }}/.singularity
-  NXF_SINGULARITY_LIBRARYDIR: ${{ github.workspace }}/.singularity
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
@@ -24,97 +22,16 @@ concurrency:
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
-  # Stage 1: Default tests — DIA-NN 1.8.1 (public, fast, no auth)
-  #           Must pass before any other job runs.
+  # Stage 1: Core tests with 1.8.1 (public, fast, no auth)
+  #          Must pass before private container tests run.
   # ──────────────────────────────────────────────────────────────────────────
-  test-default:
-    name: "Default [${{ matrix.test_profile }}] DIA-NN=1.8.1 NXF=${{ matrix.NXF_VER }}"
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'bigbio/quantmsdiann') }}
+  test-core-public:
+    name: "Core [${{ matrix.test_profile }}] DIA-NN=1.8.1"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
-        NXF_VER: ["25.04.0", "latest-everything"]
         test_profile: ["test_dia", "test_dia_dotd"]
-    env:
-      NXF_ANSI_LOG: false
-      CAPSULE_LOG: none
-      TEST_PROFILE: ${{ matrix.test_profile }}
-      EXEC_PROFILE: docker
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Set up Nextflow
-        uses: nf-core/setup-nextflow@v2
-        with:
-          version: "${{ matrix.NXF_VER }}"
-
-      - name: Disk space cleanup
-        uses: jlumbroso/free-disk-space@v1.3.1
-
-      - name: Run pipeline with test data
-        if: github.ref != 'refs/heads/master' && github.event.pull_request.base.ref != 'master'
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
-
-      - name: Run pipeline with test data (master branch)
-        if: github.ref == 'refs/heads/master' || github.event.pull_request.base.ref == 'master'
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
-
-      - name: Gather failed logs
-        if: failure() || cancelled()
-        run: |
-          mkdir -p failed_logs
-          if [ -f "${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt" ]; then
-            failed=$(grep "FAILED" ${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
-            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ || true ; done <<< "$failed"
-          fi
-
-      - name: Set timestamp
-        if: always()
-        run: echo "TS=$(date +%s)" >> $GITHUB_ENV
-
-      - uses: actions/upload-artifact@v4
-        if: failure() || cancelled()
-        name: Upload failed logs
-        with:
-          name: failed_logs_${{ matrix.test_profile }}_${{ matrix.NXF_VER }}_${{ env.TS }}
-          include-hidden-files: true
-          path: failed_logs
-          overwrite: false
-          if-no-files-found: warn
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        name: Upload log
-        with:
-          name: nextflow_${{ matrix.test_profile }}_${{ matrix.NXF_VER }}_${{ env.TS }}.log
-          include-hidden-files: true
-          path: .nextflow.log
-          overwrite: false
-          if-no-files-found: warn
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # Stage 2a: Latest DIA-NN (2.2.0) — all features
-  #           Only runs after test-default passes.
-  # ──────────────────────────────────────────────────────────────────────────
-  test-latest:
-    name: "Latest [${{ matrix.test_profile }}] DIA-NN=2.2.0"
-    needs: test-default
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        test_profile: ["test_latest_dia", "test_dia_quantums", "test_dia_parquet"]
     env:
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
@@ -136,32 +53,21 @@ jobs:
         with:
           version: "25.04.0"
 
-      - name: Log in to GitHub Container Registry
-        env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-        if: env.GHCR_TOKEN != ''
-        run: |
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
-
       - name: Disk space cleanup
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Run pipeline with test data
-        if: github.ref != 'refs/heads/master' && github.event.pull_request.base.ref != 'master'
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
-
-      - name: Run pipeline with test data (master branch)
-        if: github.ref == 'refs/heads/master' || github.event.pull_request.base.ref == 'master'
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
+          nextflow run ${GITHUB_WORKSPACE} \
+            -profile $TEST_PROFILE,$EXEC_PROFILE \
+            --outdir ${TEST_PROFILE}_results
 
       - name: Gather failed logs
         if: failure() || cancelled()
         run: |
           mkdir -p failed_logs
-          if [ -f "${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt" ]; then
-            failed=$(grep "FAILED" ${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
+          if [ -f "${TEST_PROFILE}_results/pipeline_info/execution_trace.txt" ]; then
+            failed=$(grep "FAILED" ${TEST_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
             while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ || true ; done <<< "$failed"
           fi
 
@@ -173,7 +79,7 @@ jobs:
         if: failure() || cancelled()
         name: Upload failed logs
         with:
-          name: failed_logs_latest_${{ matrix.test_profile }}_${{ env.TS }}
+          name: failed_logs_merge_${{ matrix.test_profile }}_v1_8_1_${{ env.TS }}
           include-hidden-files: true
           path: failed_logs
           overwrite: false
@@ -183,38 +89,38 @@ jobs:
         if: always()
         name: Upload log
         with:
-          name: nextflow_latest_${{ matrix.test_profile }}_${{ env.TS }}.log
+          name: nextflow_merge_${{ matrix.test_profile }}_v1_8_1_${{ env.TS }}.log
           include-hidden-files: true
           path: .nextflow.log
           overwrite: false
           if-no-files-found: warn
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Stage 2b: Singularity — default tests only (public containers)
-  #           Only runs after test-default passes.
+  # Stage 2a: Core tests with private containers (2.1.0, 2.2.0)
+  #           Only runs after Stage 1 passes.
   # ──────────────────────────────────────────────────────────────────────────
-  test-singularity:
-    name: "Singularity [${{ matrix.test_profile }}] DIA-NN=1.8.1 NXF=${{ matrix.NXF_VER }}"
-    needs: test-default
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'bigbio/quantmsdiann') }}
+  test-core-private:
+    name: "Core [${{ matrix.test_profile }}] DIA-NN=${{ matrix.diann_version }}"
+    needs: test-core-public
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        NXF_VER: ["25.04.0", "latest-everything"]
         test_profile: ["test_dia", "test_dia_dotd"]
+        diann_version: ["diann_v2_1_0", "diann_v2_2_0"]
     env:
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
       TEST_PROFILE: ${{ matrix.test_profile }}
-      EXEC_PROFILE: singularity
-    steps:
-      - name: Check out pipeline code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      DIANN_VERSION: ${{ matrix.diann_version }}
+      EXEC_PROFILE: docker
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
@@ -222,35 +128,31 @@ jobs:
       - name: Set up Nextflow
         uses: nf-core/setup-nextflow@v2
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "25.04.0"
 
-      - name: Set up Singularity
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
-          mkdir -p $NXF_SINGULARITY_CACHEDIR
-          mkdir -p $NXF_SINGULARITY_LIBRARYDIR
-
-      - name: Install Singularity with defaults
-        uses: singularityhub/install-singularity@main
+          if [ -n "$GHCR_TOKEN" ]; then
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+          fi
 
       - name: Disk space cleanup
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Run pipeline with test data
-        if: github.ref != 'refs/heads/master' && github.event.pull_request.base.ref != 'master'
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
-
-      - name: Run pipeline with test data (master branch)
-        if: github.ref == 'refs/heads/master' || github.event.pull_request.base.ref == 'master'
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
+          nextflow run ${GITHUB_WORKSPACE} \
+            -profile $TEST_PROFILE,$DIANN_VERSION,$EXEC_PROFILE \
+            --outdir ${TEST_PROFILE}_${DIANN_VERSION}_results
 
       - name: Gather failed logs
         if: failure() || cancelled()
         run: |
           mkdir -p failed_logs
-          if [ -f "${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt" ]; then
-            failed=$(grep "FAILED" ${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
+          if [ -f "${TEST_PROFILE}_${DIANN_VERSION}_results/pipeline_info/execution_trace.txt" ]; then
+            failed=$(grep "FAILED" ${TEST_PROFILE}_${DIANN_VERSION}_results/pipeline_info/execution_trace.txt | cut -f 2)
             while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ || true ; done <<< "$failed"
           fi
 
@@ -262,7 +164,7 @@ jobs:
         if: failure() || cancelled()
         name: Upload failed logs
         with:
-          name: failed_logs_sing_${{ matrix.test_profile }}_${{ matrix.NXF_VER }}_${{ env.TS }}
+          name: failed_logs_merge_${{ matrix.test_profile }}_${{ matrix.diann_version }}_${{ env.TS }}
           include-hidden-files: true
           path: failed_logs
           overwrite: false
@@ -272,7 +174,102 @@ jobs:
         if: always()
         name: Upload log
         with:
-          name: nextflow_sing_${{ matrix.test_profile }}_${{ matrix.NXF_VER }}_${{ env.TS }}.log
+          name: nextflow_merge_${{ matrix.test_profile }}_${{ matrix.diann_version }}_${{ env.TS }}.log
+          include-hidden-files: true
+          path: .nextflow.log
+          overwrite: false
+          if-no-files-found: warn
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Stage 2b: Feature tests across supported DIA-NN versions
+  #           QuantUMS and Parquet against 2.1.0 and 2.2.0
+  #           Only runs after Stage 1 passes.
+  # ──────────────────────────────────────────────────────────────────────────
+  test-features-matrix:
+    name: "Feature [${{ matrix.test_profile }}] DIA-NN=${{ matrix.diann_version }}"
+    needs: test-core-public
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # QuantUMS × {2.1.0, 2.2.0}
+          - test_profile: test_dia_quantums
+            diann_version: diann_v2_1_0
+          - test_profile: test_dia_quantums
+            diann_version: diann_v2_2_0
+          # Parquet × {2.1.0, 2.2.0}
+          - test_profile: test_dia_parquet
+            diann_version: diann_v2_1_0
+          - test_profile: test_dia_parquet
+            diann_version: diann_v2_2_0
+    env:
+      NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
+      TEST_PROFILE: ${{ matrix.test_profile }}
+      DIANN_VERSION: ${{ matrix.diann_version }}
+      EXEC_PROFILE: docker
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "25.04.0"
+
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          if [ -n "$GHCR_TOKEN" ]; then
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+          fi
+
+      - name: Disk space cleanup
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Run pipeline with test data
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} \
+            -profile $TEST_PROFILE,$DIANN_VERSION,$EXEC_PROFILE \
+            --outdir ${TEST_PROFILE}_${DIANN_VERSION}_results
+
+      - name: Gather failed logs
+        if: failure() || cancelled()
+        run: |
+          mkdir -p failed_logs
+          if [ -f "${TEST_PROFILE}_${DIANN_VERSION}_results/pipeline_info/execution_trace.txt" ]; then
+            failed=$(grep "FAILED" ${TEST_PROFILE}_${DIANN_VERSION}_results/pipeline_info/execution_trace.txt | cut -f 2)
+            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ || true ; done <<< "$failed"
+          fi
+
+      - name: Set timestamp
+        if: always()
+        run: echo "TS=$(date +%s)" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        if: failure() || cancelled()
+        name: Upload failed logs
+        with:
+          name: failed_logs_merge_${{ matrix.test_profile }}_${{ matrix.diann_version }}_${{ env.TS }}
+          include-hidden-files: true
+          path: failed_logs
+          overwrite: false
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        name: Upload log
+        with:
+          name: nextflow_merge_${{ matrix.test_profile }}_${{ matrix.diann_version }}_${{ env.TS }}.log
           include-hidden-files: true
           path: .nextflow.log
           overwrite: false

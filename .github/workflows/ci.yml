@@ -27,25 +27,15 @@ jobs:
       TEST_PROFILE: ${{ matrix.test_profile }}
       EXEC_PROFILE: ${{ matrix.exec_profile }}
 
-    name: Run pipeline with test data
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'bigbio/quantms') }}
+    name: "CI [${{ matrix.test_profile }}] DIA-NN=1.8.1 NXF=${{ matrix.NXF_VER }}"
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'bigbio/quantmsdiann') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         NXF_VER:
           - "25.04.0"
-        test_profile:
-          [
-            "test_lfq",
-            "test_dia",
-            "test_dia_dotd",
-            "test_localize",
-            "test_tmt",
-            "test_dda_id_alphapeptdeep",
-            "test_dda_id_ms2pip",
-            "test_dda_id_fine_tuning",
-          ]
+        test_profile: ["test_dia", "test_dia_dotd"]
         exec_profile: ["docker"] # extended ci tests singularity.
 
     steps:

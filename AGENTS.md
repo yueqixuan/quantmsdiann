@@ -1,8 +1,8 @@
-# AI Agent Guidelines for quantms Development
+# AI Agent Guidelines for quantmsdiann Development
 
-This document provides comprehensive guidance for AI agents working with the **quantms** bioinformatics pipeline. These guidelines ensure code quality, maintainability, and compliance with project standards.
+This document provides comprehensive guidance for AI agents working with the **quantmsdiann** bioinformatics pipeline. These guidelines ensure code quality, maintainability, and compliance with project standards.
 
-## 🚨 Critical: Mandatory Validation Before ANY Commit
+## Critical: Mandatory Validation Before ANY Commit
 
 **ALWAYS run pre-commit hooks before committing ANY changes:**
 
@@ -14,38 +14,24 @@ This is **non-negotiable**. All code must pass formatting and style checks befor
 
 ---
 
-## 📋 Table of Contents
-
-1. [Project Overview](#project-overview)
-2. [Technology Stack](#technology-stack)
-3. [Validation Workflow](#validation-workflow)
-4. [Testing Strategy](#testing-strategy)
-5. [Development Conventions](#development-conventions)
-6. [CI/CD Awareness](#cicd-awareness)
-7. [Common Tasks](#common-tasks)
-8. [Troubleshooting](#troubleshooting)
-
----
-
 ## Project Overview
 
-**quantms** is an nf-core bioinformatics best-practice analysis pipeline for **Quantitative Mass Spectrometry (MS)**. It supports three major analytical workflows:
+**quantmsdiann** is an nf-core bioinformatics best-practice analysis pipeline for **DIA-NN-based quantitative mass spectrometry**. It is a standalone pipeline focused exclusively on **Data-Independent Acquisition (DIA)** workflows using the DIA-NN search engine.
 
-- **DDA-LFQ**: Data-dependent acquisition with label-free quantification
-- **DDA-ISO**: Data-dependent acquisition with isobaric labeling (TMT, iTRAQ)
-- **DIA-LFQ**: Data-independent acquisition with label-free quantification
+**This pipeline does NOT support DDA, TMT, iTRAQ, LFQ-DDA, or any non-DIA workflows.** Those are handled by the parent `quantms` pipeline.
 
 **Key Features:**
 
 - Built with Nextflow DSL2
-- Integrates multiple search engines: Comet, MSGF+, Sage, DIA-NN
-- Uses OpenMS tools for proteomics processing
-- Statistical analysis with MSstats
+- DIA-NN for peptide/protein identification and quantification
+- Supports DIA-NN v1.8.1, v2.1.0, and v2.2.0 (latest)
+- QuantUMS quantification method (DIA-NN >= 1.9.2)
+- Parquet-native output with decoy reporting (DIA-NN >= 2.0)
+- MSstats-compatible output generation (via quantms-utils conversion, no MSstats analysis)
 - Quality control with pmultiqc
 - Complies with nf-core standards
 
-**Repository:** https://github.com/bigbio/quantms
-**Documentation:** https://quantms.readthedocs.io/
+**Repository:** https://github.com/bigbio/quantmsdiann
 
 ---
 
@@ -58,10 +44,11 @@ This is **non-negotiable**. All code must pass formatting and style checks befor
 - **nf-test**: Testing framework (config: `nf-test.config`)
 - **nf-core tools**: Pipeline standards and linting
 - **Containers**: Docker/Singularity/Apptainer/Podman (Conda deprecated)
+- **DIA-NN**: Primary search engine (versions 1.8.1 through 2.2.0)
 
 ### Key Configuration Files
 
-- `nextflow.config` - Main pipeline configuration (541 lines)
+- `nextflow.config` - Main pipeline configuration
 - `nextflow_schema.json` - Parameter schema (auto-generated)
 - `nf-test.config` - Testing configuration
 - `.nf-core.yml` - nf-core compliance settings
@@ -71,22 +58,64 @@ This is **non-negotiable**. All code must pass formatting and style checks befor
 ### Project Structure
 
 ```
-quantms/
+quantmsdiann/
 ├── main.nf                    # Pipeline entry point
-├── workflows/                 # Main workflows (quantms.nf, lfq.nf, tmt.nf, dia.nf)
+├── workflows/
+│   ├── quantmsdiann.nf        # Main workflow orchestrator
+│   └── dia.nf                 # DIA-NN analysis workflow
 ├── subworkflows/local/        # Reusable subworkflows
-├── modules/                   # Process definitions
-│   ├── local/                 # Custom modules
-│   ├── bigbio/                # BigBio shared modules
-│   └── nf-core/               # nf-core modules
-├── conf/                      # Configuration files
+│   ├── input_check/           # SDRF validation
+│   ├── file_preparation/      # Format conversion
+│   └── create_input_channel/  # SDRF metadata parsing
+├── modules/local/
+│   ├── diann/                 # DIA-NN modules (7 steps)
+│   │   ├── generate_cfg/
+│   │   ├── insilico_library_generation/
+│   │   ├── preliminary_analysis/
+│   │   ├── assemble_empirical_library/
+│   │   ├── individual_analysis/
+│   │   ├── final_quantification/
+│   │   └── diann_msstats/
+│   ├── openms/                # mzML indexing, peak picking
+│   ├── pmultiqc/              # QC reporting
+│   ├── sdrf_parsing/          # SDRF parsing
+│   ├── samplesheet_check/     # Input validation
+│   └── utils/                 # tdf2mzml, decompress, mzml stats
+├── conf/
 │   ├── base.config            # Resource definitions
 │   ├── modules/               # Module-specific configs
-│   └── tests/                 # Test profile configs (13 profiles)
+│   ├── tests/                 # Test profile configs (DIA only)
+│   └── diann_versions/        # DIA-NN version-override configs for merge matrix
 ├── tests/                     # nf-test test cases
-├── bin/                       # Utility scripts (R scripts for MSstats)
 └── assets/                    # Pipeline assets and schemas
 ```
+
+---
+
+## DIA-NN Workflow
+
+The pipeline executes the following steps:
+
+1. **SDRF Validation & Parsing** - Validates input SDRF and extracts metadata
+2. **File Preparation** - Converts RAW/mzML/.d/.dia files (ThermoRawFileParser, tdf2mzml)
+3. **Generate Config** - Creates DIA-NN config from enzyme/modifications (`quantmsutilsc dianncfg`)
+4. **In-Silico Library Generation** - Predicts spectral library from FASTA (or uses provided library)
+5. **Preliminary Analysis** - Per-file calibration and mass accuracy determination
+6. **Assemble Empirical Library** - Builds consensus library from preliminary results using .quant files
+7. **Individual Analysis** - Per-file search with empirical library (optional, for large datasets)
+8. **Final Quantification** - Summary quantification with protein/peptide/gene matrices
+9. **MSstats Format Conversion** - Converts DIA-NN report to MSstats-compatible CSV (`quantmsutilsc diann2msstats`)
+10. **pmultiqc** - Quality control reporting
+
+### DIA-NN Version-Specific Features
+
+| Feature                                     | Min Version | Parameter                    |
+| ------------------------------------------- | ----------- | ---------------------------- |
+| Core workflow, library-free, .quant caching | 1.8.1       | (default)                    |
+| QuantUMS quantification                     | 1.9.2       | `--quantums true`            |
+| Parquet output format                       | 2.0         | (automatic in 2.0+)          |
+| Decoy reporting                             | 2.0         | `--diann_report_decoys true` |
+| Native .raw on Linux                        | 2.1.0       | (automatic)                  |
 
 ---
 
@@ -109,22 +138,9 @@ pre-commit run --all-files
 
 **Configured Hooks** (`.pre-commit-config.yaml`):
 
-1. **Prettier** (v3.1.0 with prettier@3.6.2)
-   - Formats code consistently across multiple file types
-   - Auto-fixes formatting issues
-
-2. **trailing-whitespace**
-   - Removes trailing whitespace (preserves markdown linebreaks)
-
-3. **end-of-file-fixer**
-   - Ensures files end with a single newline
-
-**Excluded Files:**
-
-- `CHANGELOG.md` (manually maintained)
-- `modules/nf-core/**` (managed by nf-core)
-- `subworkflows/nf-core/**` (managed by nf-core)
-- `*.snap` (test snapshots)
+1. **Prettier** - Formats code consistently across multiple file types
+2. **trailing-whitespace** - Removes trailing whitespace (preserves markdown linebreaks)
+3. **end-of-file-fixer** - Ensures files end with a single newline
 
 **Auto-fix in CI:**
 If you forget to run pre-commit locally, comment on your PR:
@@ -133,127 +149,95 @@ If you forget to run pre-commit locally, comment on your PR:
 @nf-core-bot fix linting
 ```
 
-The bot will run pre-commit and push fixes automatically.
-
 ### 2. Pipeline Linting (RECOMMENDED)
-
-**Run before creating PR:**
 
 ```bash
 nf-core pipelines lint
-```
-
-**For master branch PRs:**
-
-```bash
+# For master branch PRs:
 nf-core pipelines lint --release
 ```
 
-This validates:
-
-- nf-core pipeline standards compliance
-- File structure and naming
-- Configuration completeness
-- Documentation requirements
-
 ### 3. Schema Validation (REQUIRED for parameter changes)
-
-**After adding/modifying parameters in `nextflow.config`:**
 
 ```bash
 nf-core pipelines schema build
 ```
 
-This updates `nextflow_schema.json` with interactive prompts to add descriptions and validation rules.
-
 ---
 
 ## Testing Strategy
 
-### Testing Philosophy
+### 3-Tier CI/CD Strategy
 
-**Do NOT run the full test suite before every commit.** The CI system runs comprehensive tests automatically. Instead:
+1. **Every PR / push to dev**: Test all features against **latest** DIA-NN (2.2.0) + test **1.8.1** for features it supports.
+2. **Merge dev → master**: Run the **full version × feature matrix** — every DIA-NN version against every feature it introduced.
+3. **ci.yml** (fast gate): Only 1.8.1 public container tests, no auth needed.
 
-1. **Pre-commit hooks**: ALWAYS (fast, catches style issues)
-2. **Targeted tests**: Run tests relevant to your changes
-3. **CI validation**: Trust the CI to catch integration issues
+### Test Profiles (DIA only)
+
+| Profile             | Feature Tested          | Default Container            | Min DIA-NN |
+| ------------------- | ----------------------- | ---------------------------- | ---------- |
+| `test_dia`          | Core workflow           | biocontainers 1.8.1 (public) | 1.8.1      |
+| `test_dia_dotd`     | Bruker .d format        | biocontainers 1.8.1 (public) | 1.8.1      |
+| `test_dia_quantums` | QuantUMS quantification | ghcr.io/bigbio/diann:2.2.0   | 1.9.2      |
+| `test_dia_parquet`  | Parquet output + decoys | ghcr.io/bigbio/diann:2.2.0   | 2.0        |
+| `test_latest_dia`   | Core on latest DIA-NN   | ghcr.io/bigbio/diann:2.2.0   | latest     |
+| `test_dia_2_2_0`    | DIA-NN 2.2.0 compat     | ghcr.io/bigbio/diann:2.2.0   | 2.2.0      |
+| `test_full_dia`     | Full-size dataset       | biocontainers 1.8.1 (public) | 1.8.1      |
+
+### Version Override Profiles (for merge matrix)
+
+These apply on top of test profiles to override the DIA-NN container version:
+
+| Profile        | Container                        | Auth |
+| -------------- | -------------------------------- | ---- |
+| `diann_v1_8_1` | `biocontainers/diann:v1.8.1_cv1` | none |
+| `diann_v2_1_0` | `ghcr.io/bigbio/diann:2.1.0`     | GHCR |
+| `diann_v2_2_0` | `ghcr.io/bigbio/diann:2.2.0`     | GHCR |
+
+### CI Workflows
+
+| Workflow            | Trigger                 | What it runs                                         |
+| ------------------- | ----------------------- | ---------------------------------------------------- |
+| **ci.yml**          | Every PR (fast gate)    | `test_dia`, `test_dia_dotd` (1.8.1, Docker)          |
+| **extended_ci.yml** | Every PR / push to dev  | 1.8.1 defaults + all features on 2.2.0 + Singularity |
+| **merge_ci.yml**    | PR to master / releases | Full version × feature matrix (10 combinations)      |
+| **linting.yml**     | All PRs, releases       | Pre-commit hooks + `nf-core pipelines lint`          |
+| **branch.yml**      | PRs to master           | Only allows PRs from `dev` branch                    |
 
 ### When to Run Tests Locally
-
-#### 🟢 Documentation/Config-Only Changes
 
 **No testing required:**
 
 - README, CHANGELOG, docs/ updates
 - Minor config tweaks (labels, descriptions)
 - Comment additions
-- Asset file updates (email templates, correction matrices)
 
-#### 🟡 Targeted Testing Required
+**Targeted testing required:**
 
-**Run specific test profile(s):**
+| Change Area                     | Test Profile         | Command                                                                 |
+| ------------------------------- | -------------------- | ----------------------------------------------------------------------- |
+| Core DIA-NN modules             | `test_dia`           | `nextflow run . -profile test_dia,docker --outdir results`              |
+| Bruker .d support               | `test_dia_dotd`      | `nextflow run . -profile test_dia_dotd,docker --outdir results`         |
+| QuantUMS / final_quantification | `test_dia_quantums`  | `nextflow run . -profile test_dia_quantums,docker --outdir results`     |
+| Parquet output / diann_msstats  | `test_dia_parquet`   | `nextflow run . -profile test_dia_parquet,docker --outdir results`      |
+| Cross-version compat            | Use version override | `nextflow run . -profile test_dia,diann_v2_2_0,docker --outdir results` |
 
-| Change Area             | Test Profile(s)             | Command                                                                     |
-| ----------------------- | --------------------------- | --------------------------------------------------------------------------- |
-| LFQ workflow            | `test_lfq`                  | `nextflow run . -profile test_lfq,docker --outdir results`                  |
-| TMT/iTRAQ workflow      | `test_tmt`                  | `nextflow run . -profile test_tmt,docker --outdir results`                  |
-| TMT with correction     | `test_tmt_corr`             | `nextflow run . -profile test_tmt_corr,docker --outdir results`             |
-| DIA workflow            | `test_dia`                  | `nextflow run . -profile test_dia,docker --outdir results`                  |
-| PTM localization        | `test_localize`             | `nextflow run . -profile test_localize,docker --outdir results`             |
-| Sage search engine      | `test_lfq_sage`             | `nextflow run . -profile test_lfq_sage,docker --outdir results`             |
-| AlphaPeptDeep rescoring | `test_dda_id_alphapeptdeep` | `nextflow run . -profile test_dda_id_alphapeptdeep,docker --outdir results` |
-| MS2PIP rescoring        | `test_dda_id_ms2pip`        | `nextflow run . -profile test_dda_id_ms2pip,docker --outdir results`        |
-
-#### 🔴 Comprehensive Testing Required
-
-**Run nf-test suite:**
+**Comprehensive testing (before PR):**
 
 ```bash
-# Run all tests with nf-test
 nf-test test --profile debug,test,docker --verbose
-
-# Or run specific test file
-nf-test test tests/default.nf.test --profile debug,test,docker --verbose
 ```
 
-**When to run comprehensive tests:**
+### Container Authentication
 
-- Core pipeline logic changes (main.nf, quantms.nf)
-- Cross-cutting subworkflow modifications
-- Module changes affecting multiple workflows
-- Before final PR submission (optional but recommended)
-
-### Test Configuration Files
-
-All test profiles are in `conf/tests/`:
-
-- `test_lfq.config` - Quick LFQ test (default)
-- `test_tmt.config` - TMT isobaric labeling
-- `test_tmt_corr.config` - TMT with plex correction
-- `test_dia.config` - DIA label-free
-- `test_latest_dia.config` - Latest DIA version
-- `test_localize.config` - PTM localization
-- `test_lfq_sage.config` - LFQ with Sage
-- `test_full_lfq.config` - Full-size LFQ dataset
-- `test_full_tmt.config` - Full-size TMT dataset
-- `test_full_dia.config` - Full-size DIA dataset
-- `test_dda_id_alphapeptdeep.config` - AlphaPeptDeep rescoring
-- `test_dda_id_ms2pip.config` - MS2PIP rescoring
-- `test_dda_id_fine_tuning.config` - Fine-tuning workflow
-
-### Snapshot Testing
-
-The pipeline uses snapshot-based testing (`tests/default.nf.test`):
-
-- Compares stable file names and content
-- Validates workflow success
-- Ignores volatile files (pipeline_info/\*.{html,json,txt})
-
-**Updating snapshots after intentional changes:**
+Tests using `ghcr.io/bigbio/diann:*` containers require GHCR authentication (DIA-NN has an academic-only license):
 
 ```bash
-nf-test test --profile debug,test,docker --update-snapshot
+echo "$GHCR_TOKEN" | docker login ghcr.io -u $GHCR_USERNAME --password-stdin
 ```
+
+In CI, the `GHCR_USERNAME` and `GHCR_TOKEN` secrets are configured in the repository.
 
 ---
 
@@ -263,36 +247,20 @@ nf-test test --profile debug,test,docker --update-snapshot
 
 - **Target branch**: `dev` (NOT master)
 - **Master branch**: Release-ready code only
-- **PR process**: Fork → feature branch → PR to `dev`
+- **PR process**: Fork -> feature branch -> PR to `dev`
 
 ### Naming Conventions
 
 #### Channel Names
 
-**Initial output from a process:**
-
 ```groovy
-ch_output_from_<process_name>
-```
-
-**Intermediate/terminal channels:**
-
-```groovy
-ch_<previous_process>_for_<next_process>
-```
-
-**Examples:**
-
-```groovy
-ch_output_from_comet
-ch_comet_for_fdr_control
-ch_fdr_for_protein_inference
+ch_output_from_<process_name>     // Initial output from a process
+ch_<previous_process>_for_<next_process>  // Intermediate channels
 ```
 
 #### Process/Module Names
 
-- Use lowercase with underscores: `peptide_indexer`, `protein_inference`
-- Be descriptive: `OPENMS_PERCOLATORADAPTER` not `PERCOLATOR`
+- Use lowercase with underscores: `final_quantification`, `preliminary_analysis`
 - Follow nf-core conventions for consistency
 
 ### Resource Labels
@@ -308,54 +276,29 @@ Defined in `conf/base.config`:
 | `process_medium`   | 8   | 72 GB  | 16h  | Standard processing   |
 | `process_high`     | 12  | 108 GB | 20h  | Heavy computation     |
 
-**Usage in process:**
+### DIA-NN Module Labels
+
+All DIA-NN process modules use the `diann` label for container selection:
 
 ```groovy
-process MY_PROCESS {
-    label 'process_medium'
-
-    cpus task.cpus
-    memory task.memory
+process DIANN_FINAL_QUANTIFICATION {
+    label 'process_high'
+    label 'diann'
+    // ...
 }
 ```
 
-### Adding a New Step
+The `diann` label is what version-override profiles target to switch containers.
 
-When adding a new processing step to the pipeline:
+### Adding a New DIA-NN Feature
 
-1. **Define input/output channels** in the workflow
-2. **Write process block** in `modules/local/` or reuse from nf-core/bigbio
-3. **Add parameters** to `nextflow.config` with sensible defaults
-4. **Update schema**:
-   ```bash
-   nf-core pipelines schema build
-   ```
-5. **Add parameter validation** (type, range, enum constraints)
-6. **Perform local testing** with appropriate test profile
-7. **Add test configuration** in `conf/tests/` if needed
-8. **Update MultiQC config** (`assets/multiqc_config.yml`) if generates reports
-9. **Update documentation**:
-   - `docs/usage.md` - Parameter descriptions
-   - `docs/output.md` - Output file descriptions
-10. **Update CHANGELOG.md** and `CITATIONS.md` if adds new tools
-
-### Module Configuration
-
-Module-specific settings in `conf/modules/modules.config`:
-
-```groovy
-withName: 'OPENMS_PERCOLATORADAPTER' {
-    ext.args = [
-        params.fdr_threshold ? "-score_type q-value -threshold ${params.fdr_threshold}" : '',
-        params.train_FDR ? "-train_FDR ${params.train_FDR}" : ''
-    ].join(' ').trim()
-    publishDir = [
-        path: { "${params.outdir}/intermediate_results/fdr_control" },
-        mode: params.publish_dir_mode,
-        pattern: '*.idXML'
-    ]
-}
-```
+1. **Identify minimum DIA-NN version** that supports the feature
+2. **Modify the relevant module** in `modules/local/diann/`
+3. **Add parameter** to `nextflow.config` with sensible default
+4. **Update schema**: `nf-core pipelines schema build`
+5. **Create or update test profile** in `conf/tests/` with the feature enabled
+6. **Add to CI matrix** in `extended_ci.yml` (latest) and `merge_ci.yml` (version matrix)
+7. **Update documentation**: `docs/usage.md`, `docs/output.md`
 
 ### Code Style
 
@@ -367,177 +310,11 @@ withName: 'OPENMS_PERCOLATORADAPTER' {
 
 ---
 
-## CI/CD Awareness
-
-### GitHub Actions Workflows
-
-Understanding what runs automatically helps you anticipate issues:
-
-#### 1. **Linting** (`.github/workflows/linting.yml`)
-
-**Triggers**: All PRs, releases
-**Runs**:
-
-- Pre-commit hooks (prettier, whitespace, EOF)
-- `nf-core pipelines lint` (with `--release` for master PRs)
-
-**Artifacts**: `lint_log.txt`, `lint_results.md`
-
-#### 2. **CI Testing** (`.github/workflows/ci.yml`)
-
-**Triggers**: Push to dev/master, PRs, releases
-**Matrix**:
-
-- Nextflow: `25.04.0`
-- Test profiles: All 7 main profiles (lfq, tmt, dia, localize, sage, alphapeptdeep, ms2pip)
-- Container: Docker
-
-**Steps**:
-
-1. Checkout with full history
-2. Setup Java 17
-3. Install Nextflow
-4. Free disk space
-5. Run pipeline with test profile
-6. Upload artifacts on failure
-
-**Artifacts**: Failed logs, results, nextflow logs (timestamped)
-
-**Concurrency**: Cancels in-progress runs for same PR
-
-#### 3. **Extended CI** (`.github/workflows/ci_extended.yml`)
-
-**Matrix**:
-
-- Nextflow: `25.04.0` + `latest-everything`
-- Test profiles: All 8 profiles including `test_tmt_corr`
-- Runs without `dev` profile on master
-
-#### 4. **Branch Protection** (`.github/workflows/branch.yml`)
-
-**Purpose**: Prevents direct PRs to master
-**Action**: Only allows PRs from `dev` or `patch` branches
-
-#### 5. **Auto-fix Linting** (`.github/workflows/fix-linting.yml`)
-
-**Trigger**: Comment `@nf-core-bot fix linting` on PR
-**Action**: Runs pre-commit, commits fixes, pushes changes
-
-### What This Means for You
-
-✅ **You don't need to run all tests locally** - CI does this
-✅ **Pre-commit failures in CI** - Use `@nf-core-bot fix linting`
-✅ **Test failures** - Check artifacts for logs
-✅ **Lint failures** - Run `nf-core pipelines lint` locally first
-✅ **Branch errors** - Ensure PRs target `dev` not `master`
-
----
-
-## Common Tasks
-
-### Setting Up Development Environment
-
-```bash
-# Clone repository
-git clone https://github.com/bigbio/quantms.git
-cd quantms
-
-# Install pre-commit hooks
-pip install pre-commit
-pre-commit install
-
-# Install nf-core tools
-pip install nf-core
-
-# Install nf-test (if testing locally)
-# See: https://code.askimed.com/nf-test/installation/
-```
-
-### Making Changes
-
-```bash
-# 1. Create feature branch from dev
-git checkout dev
-git pull origin dev
-git checkout -b feature/my-new-feature
-
-# 2. Make your changes
-# ... edit files ...
-
-# 3. Run pre-commit (MANDATORY)
-pre-commit run --all-files
-
-# 4. Update schema if parameters changed
-nf-core pipelines schema build
-
-# 5. Run targeted tests (if code changes)
-nextflow run . -profile test_lfq,docker --outdir results_test
-
-# 6. Commit changes
-git add .
-git commit -m "feat: add new feature"
-
-# 7. Push and create PR
-git push origin feature/my-new-feature
-# Create PR to dev branch on GitHub
-```
-
-### Updating nf-core Modules
-
-```bash
-# List installed modules
-nf-core modules list local
-
-# Update specific module
-nf-core modules update <module_name>
-
-# Update all modules
-nf-core modules update --all
-```
-
-### Running Pipeline Locally
-
-```bash
-# Basic test run
-nextflow run . -profile test,docker --outdir results
-
-# With debug output
-nextflow run . -profile debug,test,docker --outdir results
-
-# Specific test profile
-nextflow run . -profile test_lfq,docker --outdir results
-
-# Resume from cache
-nextflow run . -profile test,docker --outdir results -resume
-
-# Custom parameters
-nextflow run . -profile test,docker \
-    --outdir results \
-    --enable_mod_localization \
-    --mod_residues 'S,T,Y' \
-    --mod_mass_shift 79.966331
-```
-
-### Checking Pipeline Reports
-
-After running pipeline, check these files in `results/`:
-
-- `pipeline_info/execution_report.html` - Resource usage
-- `pipeline_info/execution_timeline.html` - Timeline visualization
-- `pipeline_info/execution_trace.txt` - Detailed trace
-- `multiqc/multiqc_report.html` - Quality control report
-
----
-
 ## Troubleshooting
 
 ### Pre-commit Issues
 
 **Problem**: Pre-commit hook fails with formatting issues
-
-```
-Files were modified by this hook. Additional output:
-```
 
 **Solution**: The files were auto-fixed. Stage and commit again:
 
@@ -546,31 +323,25 @@ git add .
 git commit -m "your message"
 ```
 
----
-
-**Problem**: Pre-commit is slow on large changesets
-
-**Solution**: Run on specific files only:
-
-```bash
-pre-commit run --files path/to/file1.nf path/to/file2.config
-```
-
----
-
 ### Testing Issues
 
 **Problem**: Test fails with "Process exceeded memory limit"
 
-**Solution**: Ensure you're using the `test` profile with resource limits:
+**Solution**: Ensure you're using a test profile with resource limits:
 
 ```bash
-nextflow run . -profile test,docker --outdir results
+nextflow run . -profile test_dia,docker --outdir results
 ```
 
-The `test` profile sets `process.memory = 6.GB` and `process.cpus = 2` for CI compatibility.
+**Problem**: GHCR container pull fails
 
----
+**Solution**: Feature test profiles require GHCR authentication:
+
+```bash
+echo "$GHCR_TOKEN" | docker login ghcr.io -u $GHCR_USERNAME --password-stdin
+```
+
+For local testing without GHCR access, use `test_dia` or `test_dia_dotd` (public containers).
 
 **Problem**: Snapshot test fails after intentional output changes
 
@@ -580,207 +351,32 @@ The `test` profile sets `process.memory = 6.GB` and `process.cpus = 2` for CI co
 nf-test test --profile debug,test,docker --update-snapshot
 ```
 
-Then commit the updated `.snap` files.
-
----
-
-**Problem**: Container not found / pulling issues
-
-**Solution**:
-
-1. Check internet connection
-2. Use alternative container engine:
-   ```bash
-   nextflow run . -profile test,singularity --outdir results
-   ```
-3. For Wave-enabled containers, add `wave` profile:
-   ```bash
-   nextflow run . -profile test,docker,wave --outdir results
-   ```
-
----
-
-**Problem**: Test data not accessible
-
-**Solution**: Test data is hosted on GitHub. Ensure:
-
-1. Internet connectivity
-2. No firewall blocking GitHub raw content
-3. Try with `-resume` to use cached data
-
----
-
 ### Nextflow Issues
 
 **Problem**: "Nextflow version is too old"
 
-**Solution**: Update Nextflow:
+**Solution**:
 
 ```bash
 nextflow self-update
 # Or install specific version
 export NXF_VER=25.04.0
-nextflow -version
 ```
-
----
 
 **Problem**: "Process terminated with exit code 137"
 
 **Solution**: Out of memory. Either:
 
-1. Use test profile: `-profile test,docker`
+1. Use test profile: `-profile test_dia,docker`
 2. Increase Docker memory limit in Docker Desktop settings
-3. Reduce `params.max_memory` in config
 
----
-
-**Problem**: "Error executing process > WORKFLOW:SUBWORKFLOW:PROCESS"
+**Problem**: Process error
 
 **Solution**:
 
-1. Check `.nextflow.log` for details:
-   ```bash
-   tail -100 .nextflow.log
-   ```
-2. Check work directory for process error:
-   ```bash
-   cat work/<hash>/.command.err
-   cat work/<hash>/.command.log
-   ```
-3. Rerun with more verbose output:
-   ```bash
-   nextflow run . -profile debug,test,docker --outdir results
-   ```
-
----
-
-### Schema/Parameter Issues
-
-**Problem**: "Unknown parameter"
-
-**Solution**:
-
-1. Check if parameter is in `nextflow.config`
-2. Update schema:
-   ```bash
-   nf-core pipelines schema build
-   ```
-3. Validate against schema:
-   ```bash
-   nf-core pipelines schema validate params.json
-   ```
-
----
-
-**Problem**: Schema build fails / JSON validation error
-
-**Solution**:
-
-1. Check `nextflow_schema.json` syntax:
-   ```bash
-   cat nextflow_schema.json | jq .
-   ```
-2. If corrupted, restore from git:
-   ```bash
-   git checkout nextflow_schema.json
-   nf-core pipelines schema build
-   ```
-
----
-
-### CI/CD Issues
-
-**Problem**: CI tests pass locally but fail in GitHub Actions
-
-**Solution**: Common causes:
-
-1. **Resource limits**: CI has stricter limits (2 CPU, 6 GB RAM)
-2. **Test profile**: Ensure using `test` profile in CI config
-3. **Container differences**: CI uses different architecture (amd64)
-4. **Timeouts**: CI has time limits, may need to optimize slow processes
-
----
-
-**Problem**: Lint check fails in CI but passes locally
-
-**Solution**:
-
-1. Ensure using same nf-core version:
-   ```bash
-   # Check version in .nf-core.yml
-   pip install nf-core==<version>
-   ```
-2. Run lint with same flags as CI:
-   ```bash
-   nf-core pipelines lint
-   # For master PRs:
-   nf-core pipelines lint --release
-   ```
-
----
-
-**Problem**: `@nf-core-bot fix linting` doesn't work
-
-**Solution**:
-
-1. Check bot has write permissions to your fork
-2. Ensure PR is from a branch (not fork's master)
-3. Manually run and commit:
-   ```bash
-   pre-commit run --all-files
-   git add .
-   git commit -m "style: apply pre-commit fixes"
-   git push
-   ```
-
----
-
-### Module/Subworkflow Issues
-
-**Problem**: "Module not found" error
-
-**Solution**:
-
-1. Check `modules.json` for module entry
-2. Install module:
-   ```bash
-   nf-core modules install <module_name>
-   ```
-3. For local modules, verify path in `modules/local/`
-
----
-
-**Problem**: Module config not applied
-
-**Solution**: Check `conf/modules/modules.config`:
-
-1. Use correct selector: `withName: 'EXACT_PROCESS_NAME'`
-2. Process names are case-sensitive
-3. For subworkflow processes: `withName: '.*:SUBWORKFLOW:PROCESS'`
-
----
-
-### General Debugging Tips
-
-1. **Always check `.nextflow.log`** - Contains detailed error info
-2. **Inspect work directory** - Failed process outputs in `work/<hash>/`
-3. **Use `-resume`** - Saves time by using cached results
-4. **Enable debug profile** - More verbose logging: `-profile debug`
-5. **Check resource usage** - View `pipeline_info/execution_report.html`
-6. **Test incrementally** - Test small changes before big refactors
-7. **Use nf-test** - Unit test individual processes/subworkflows
-
----
-
-## Additional Resources
-
-- **Pipeline Documentation**: https://quantms.readthedocs.io/
-- **nf-core Guidelines**: https://nf-co.re/docs/guidelines
-- **Nextflow Documentation**: https://www.nextflow.io/docs/latest/
-- **nf-test Documentation**: https://code.askimed.com/nf-test/
-- **GitHub Discussions**: https://github.com/bigbio/quantms/discussions
-- **Issues**: https://github.com/bigbio/quantms/issues
+1. Check `.nextflow.log` for details
+2. Check work directory: `cat work/<hash>/.command.err`
+3. Rerun with debug: `nextflow run . -profile debug,test_dia,docker --outdir results`
 
 ---
 
@@ -795,26 +391,23 @@ pre-commit run --all-files
 # Lint pipeline
 nf-core pipelines lint
 
-# Update schema
+# Update schema after parameter changes
 nf-core pipelines schema build
 
-# Run LFQ test
-nextflow run . -profile test_lfq,docker --outdir results
-
-# Run TMT test
-nextflow run . -profile test_tmt,docker --outdir results
-
-# Run DIA test
+# Run core DIA test (public container, no auth)
 nextflow run . -profile test_dia,docker --outdir results
+
+# Run QuantUMS test (requires GHCR auth)
+nextflow run . -profile test_dia_quantums,docker --outdir results
+
+# Run with specific DIA-NN version override
+nextflow run . -profile test_dia,diann_v2_2_0,docker --outdir results
 
 # Run nf-test suite
 nf-test test --profile debug,test,docker --verbose
 
-# Update snapshots
-nf-test test --profile debug,test,docker --update-snapshot
-
 # Resume pipeline
-nextflow run . -profile test,docker --outdir results -resume
+nextflow run . -profile test_dia,docker --outdir results -resume
 
 # Clean work directory
 nextflow clean -f
@@ -827,13 +420,16 @@ nextflow clean -f
 - **Pre-commit config**: `.pre-commit-config.yaml`
 - **nf-test config**: `nf-test.config`
 - **Test configs**: `conf/tests/*.config`
+- **Version overrides**: `conf/diann_versions/*.config`
 - **Module configs**: `conf/modules/modules.config`
 - **Base resources**: `conf/base.config`
-- **Main workflow**: `workflows/quantms.nf`
+- **Main workflow**: `workflows/quantmsdiann.nf`
+- **DIA workflow**: `workflows/dia.nf`
+- **DIA-NN modules**: `modules/local/diann/*/main.nf`
 - **Entry point**: `main.nf`
 
 ---
 
-**Last Updated**: January 14, 2026
+**Last Updated**: March 18, 2026
 **Pipeline Version**: 1.8.0dev
 **Minimum Nextflow**: 25.04.0

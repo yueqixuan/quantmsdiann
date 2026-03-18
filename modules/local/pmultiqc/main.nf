@@ -29,7 +29,7 @@ process PMULTIQC {
     # leaving here to ease debugging
     ls -lcth *
 
-    cat results/*openms_design.tsv
+    cat results/*openms_design.tsv 2>/dev/null || true
 
     multiqc \\
         -f \\

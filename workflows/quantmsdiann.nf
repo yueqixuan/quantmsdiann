@@ -64,7 +64,7 @@ workflow QUANTMSDIANN {
 
     FILE_PREPARATION.out.results
         .branch { item ->
-            dia: item[0].acquisition_method.contains("dia")
+            dia: item[0].acquisition_method.toLowerCase().contains("dia")
         }
         .set { ch_fileprep_result }
     //
@@ -76,22 +76,12 @@ workflow QUANTMSDIANN {
     ch_consensus_pmultiqc = channel.empty()
 
     //
-    // MODULE: Generate decoy database
+    // Validate protein database
     //
-    if (params.database) {
-        ch_db_for_decoy_creation = channel.from(file(params.database, checkIfExists: true))
+    if (!params.database) {
+        error('No protein database provided. Please specify --database <path/to/proteins.fasta>')
     }
-    else {
-        exit(1, 'No protein database provided')
-    }
-
-
-    CREATE_INPUT_CHANNEL.out.ch_meta_config_iso.mix(
-        CREATE_INPUT_CHANNEL.out.ch_meta_config_lfq
-    ).first()
-        | combine(ch_db_for_decoy_creation)
-        | map { item -> item[-1] }
-        | set { ch_db_for_decoy_creation_or_null }
+    ch_database = file(params.database, checkIfExists: true)
 
     DIA(
         ch_fileprep_result.dia,
@@ -100,7 +90,7 @@ workflow QUANTMSDIANN {
     ch_pipeline_results = ch_pipeline_results.mix(DIA.out.diann_report)
     ch_msstats_in = ch_msstats_in.mix(DIA.out.msstats_in)
     ch_versions = ch_versions.mix(DIA.out.versions)
-    
+
     // Other subworkflow will return null when performing another subworkflow due to unknown reason.
     ch_versions = ch_versions.filter { v -> v != null }
 
@@ -127,7 +117,7 @@ workflow QUANTMSDIANN {
     ch_multiqc_files = ch_multiqc_files.mix(FILE_PREPARATION.out.statistics)
     ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
-    ch_multiqc_quantms_logo = file("${projectDir}/assets/nf-core-quantms_logo_light.png")
+    ch_multiqc_quantms_logo = file("${projectDir}/assets/nf-core-quantmsdiann_logo_light.png")
 
     // create cross product of all inputs
     multiqc_inputs = CREATE_INPUT_CHANNEL.out.ch_expdesign

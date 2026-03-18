@@ -7,7 +7,6 @@ include { TDF2MZML            } from '../../../modules/local/utils/tdf2mzml/main
 include { DECOMPRESS          } from '../../../modules/local/utils/decompress_dotd/main'
 include { MZML_INDEXING       } from '../../../modules/local/openms/mzml_indexing/main'
 include { MZML_STATISTICS     } from '../../../modules/local/utils/mzml_statistics/main'
-include { OPENMS_PEAK_PICKER  } from '../../../modules/local/openms/openms_peak_picker/main'
 
 workflow FILE_PREPARATION {
     take:
@@ -120,16 +119,6 @@ workflow FILE_PREPARATION {
     // Pass through .dia files without conversion (DIA-NN handles them natively)
     // Note: .dia files bypass peak picking and mzML statistics (when enabled) as they are only used with DIA-NN
     ch_results = ch_results.mix(ch_branched_input.dia)
-
-    if (params.openms_peakpicking) {
-        // If the peak picker is enabled, it will over-write not bypass the .d files
-        OPENMS_PEAK_PICKER (
-            indexed_mzml_bundle
-        )
-
-        ch_versions = ch_versions.mix(OPENMS_PEAK_PICKER.out.versions)
-        ch_results = OPENMS_PEAK_PICKER.out.mzmls_picked
-    }
 
     emit:
     results         = ch_results        // channel: [val(mzml_id), indexedmzml|.d.tar]

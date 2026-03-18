@@ -42,12 +42,13 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
 
     if (params.mass_acc_automatic) {
         mass_acc = '--individual-mass-acc'
-    } else if (meta['precursormasstoleranceunit'].toLowerCase().endsWith('ppm') && meta['fragmentmasstoleranceunit'].toLowerCase().endsWith('ppm')){
+    } else if (meta['precursormasstoleranceunit']?.toLowerCase()?.endsWith('ppm') && meta['fragmentmasstoleranceunit']?.toLowerCase()?.endsWith('ppm')){
         mass_acc = "--mass-acc ${meta['fragmentmasstolerance']} --mass-acc-ms1 ${meta['precursormasstolerance']}"
     } else {
         mass_acc = '--individual-mass-acc'
     }
     scan_window = params.scan_window_automatic ? '--individual-windows' : "--window $params.scan_window"
+    diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
 
     """
     # Precursor Tolerance value was: ${meta['precursormasstolerance']}
@@ -71,6 +72,7 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
             ${mass_acc} \\
             ${scan_window} \\
             --gen-spec-lib \\
+            ${diann_no_peptidoforms} \\
             \${mod_flags} \\
             $args
 

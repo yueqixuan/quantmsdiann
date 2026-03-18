@@ -53,12 +53,6 @@
                     "fa_icon": "fas fa-file-invoice",
                     "default": "mzML",
                     "help_text": "If the above [`--root_folder`](#root_folder) was given to load local input files, this overwrites the file type/extension of\nthe filename as specified in the SDRF. Usually used in case you have an mzML-converted version of the files already. Needs to be\none of 'mzML', 'raw', 'd', or 'dia' (the letter cases should match your files exactly). Compressed variants (.gz, .tar, .tar.gz, .zip) are supported for 'mzML', 'raw', and 'd' formats."
-                },
-                "id_only": {
-                    "type": "boolean",
-                    "description": "Only perform identification subworkflow.",
-                    "fa_icon": "far fa-check-square",
-                    "help_text": "Only perform identification subworkflow for specific cases."
                 }
             }
         },
@@ -126,27 +120,9 @@
         "spectrum_preprocessing": {
             "title": "Spectrum preprocessing",
             "type": "object",
-            "description": "In case you start from profile mode mzMLs or the internal preprocessing during conversion with the ThermoRawFileParser fails (e.g. due to new instrument types), preprocessing has to be performed with OpenMS. Use this section to configure.",
+            "description": "Configure file conversion and preprocessing options.",
             "default": "",
             "properties": {
-                "openms_peakpicking": {
-                    "type": "boolean",
-                    "description": "Activate OpenMS-internal peak picking",
-                    "fa_icon": "far fa-check-square",
-                    "help_text": "Activate OpenMS-internal peak picking with the tool PeakPickerHiRes. Skips already picked spectra."
-                },
-                "peakpicking_inmemory": {
-                    "type": "boolean",
-                    "description": "Perform peakpicking in memory",
-                    "fa_icon": "far fa-check-square",
-                    "help_text": "Perform peakpicking in memory. Use only if problems occur."
-                },
-                "peakpicking_ms_levels": {
-                    "type": "string",
-                    "description": "Which MS levels to pick as comma separated list. Leave empty for auto-detection.",
-                    "fa_icon": "fas fa-font",
-                    "help_text": "Which MS levels to pick as comma separated list, e.g. `--peakpicking_ms_levels 1,2`. Leave empty for auto-detection."
-                },
                 "convert_dotd": {
                     "type": "boolean",
                     "description": "Convert bruker .d files to mzML",
@@ -158,7 +134,7 @@
                     "default": true,
                     "description": "Force initial re-indexing of input mzML files. Also fixes some common mistakes in slightly incomplete/outdated mzMLs. (Default: true for safety)",
                     "fa_icon": "far fa-check-square",
-                    "help_text": "Force re-indexing in the beginning of the pipeline to make sure that indices are up-to-date and to avoid redundant indexing on-demand in steps that require an index (e.g., Comet)."
+                    "help_text": "Force re-indexing in the beginning of the pipeline to make sure that indices are up-to-date."
                 },
                 "mzml_statistics": {
                     "type": "boolean",
@@ -186,7 +162,7 @@
                     "description": "Database searches accounted for N-terminal methionine excision, a common co-translational modification where the initial methionine is enzymatically removed from proteins.",
                     "default": true,
                     "fa_icon": "far fa-check-square",
-                    "help_text": "Warning: not supported by sage yet."
+                    "help_text": "Database searches account for N-terminal methionine excision."
                 },
                 "allowed_missed_cleavages": {
                     "type": "integer",
@@ -214,14 +190,14 @@
                     "description": "Fragment mass tolerance used for database search. The default of 0.03 Da is for high-resolution instruments.",
                     "default": 0.03,
                     "fa_icon": "fas fa-sliders-h",
-                    "help_text": "Caution: for Comet we are estimating the `fragment_bin_tolerance` parameter based on this automatically. This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
+                    "help_text": "This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
                 },
                 "fragment_mass_tolerance_unit": {
                     "type": "string",
                     "description": "Fragment mass tolerance unit used for database search. Possible values are 'ppm' and 'Da' (default).",
                     "default": "Da",
                     "fa_icon": "fas fa-list-ol",
-                    "help_text": "Caution: for Comet we are estimating the `fragment_bin_tolerance` parameter based on this automatically. This value can be overridden via command line. If not specified, the value from the SDRF file will be used.",
+                    "help_text": "This value can be overridden via command line. If not specified, the value from the SDRF file will be used.",
                     "enum": ["Da", "ppm"]
                 },
                 "variable_mods": {
@@ -229,7 +205,7 @@
                     "description": "A comma-separated list of variable modifications with their Unimod name to be searched during database search",
                     "default": "Oxidation (M)",
                     "fa_icon": "fas fa-tasks",
-                    "help_text": "Specify which variable modifications should be applied to the database search (eg. '' or 'Oxidation (M)', see Unimod modifications in the style '({unimod name} ({optional term specificity} {optional origin})'). All possible modifications can be found in the restrictions mentioned in the command line documentation of e.g. [CometAdapter](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/TOPP_CometAdapter.html). Multiple variable modifications can be specified comma separated (e.g. 'Carbamidomethyl (C),Oxidation (M)'). This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
+                    "help_text": "Specify which variable modifications should be applied to the database search (e.g. 'Oxidation (M)'). Use Unimod names in the style '({unimod name} ({optional term specificity} {optional origin})'. Multiple variable modifications can be specified comma separated (e.g. 'Carbamidomethyl (C),Oxidation (M)'). This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
                 },
                 "min_precursor_charge": {
                     "type": "integer",
@@ -245,13 +221,13 @@
                 },
                 "min_peptide_length": {
                     "type": "integer",
-                    "description": "Minimum peptide length to consider (works with MSGF and in newer Comet versions)",
+                    "description": "Minimum peptide length to consider",
                     "default": 6,
                     "fa_icon": "fas fa-sliders-h"
                 },
                 "max_peptide_length": {
                     "type": "integer",
-                    "description": "Maximum peptide length to consider (works with MSGF and in newer Comet versions)",
+                    "description": "Maximum peptide length to consider",
                     "default": 40,
                     "fa_icon": "fas fa-sliders-h"
                 },
@@ -415,9 +391,15 @@
                     "help_text": "Sets the DIA-NN parameter --quant-params. Provide previously obtained QuantUMS parameters to use instead of training new ones.",
                     "hidden": false
                 },
+                "diann_no_peptidoforms": {
+                    "type": "boolean",
+                    "description": "Set no-peptidoforms mode: disables automatic peptidoform scoring when variable modifications are declared (DIA-NN: not recommended)",
+                    "fa_icon": "far fa-check-square",
+                    "default": false
+                },
                 "skip_preliminary_analysis": {
                     "type": "boolean",
-                    "description": "Skip the preliminary analysis step, thus use the passed spectral library as-is instead of generating a local concensus library.",
+                    "description": "Skip the preliminary analysis step, thus use the passed spectral library as-is instead of generating a local consensus library.",
                     "fa_icon": "fas fa-forward",
                     "hidden": false
                 },
@@ -469,63 +451,6 @@
                 }
             },
             "fa_icon": "fas fa-braille"
-        },
-        "statistical_post_processing": {
-            "title": "Statistical post-processing",
-            "type": "object",
-            "description": "Parameters for the R script using MSstats for statistical post processing and quantification visualization.",
-            "default": "",
-            "properties": {
-                "skip_post_msstats": {
-                    "type": "boolean",
-                    "description": "Skip MSstats/MSstatsTMT for statistical post-processing?",
-                    "fa_icon": "fas fa-forward"
-                },
-                "ref_condition": {
-                    "type": "string",
-                    "description": "Experimental: Instead of all pairwise contrasts (default), uses the given condition name/number (corresponding to your experimental design) as a reference and creates pairwise contrasts against it.",
-                    "fa_icon": "fas fa-font"
-                },
-                "contrasts": {
-                    "type": "string",
-                    "description": "Experimental: Allows full control over contrasts by specifying a set of contrasts in a semicolon separated list of R-compatible contrasts with the condition names/numbers as variables (e.g. `1-2;1-3;2-3`). Overwrites [`--ref_condition`](#ref_condition).",
-                    "fa_icon": "fas fa-font",
-                    "default": "pairwise"
-                },
-                "msstats_threshold": {
-                    "type": "number",
-                    "description": "The threshold value for differential expressed proteins in MSstats plots based on adjusted p-value",
-                    "fa_icon": "fas fa-filter",
-                    "default": 0.05
-                },
-                "msstatslfq_feature_subset_protein": {
-                    "type": "string",
-                    "description": "Which features to use for quantification per protein: 'top3' or 'highQuality' which removes outliers only",
-                    "fa_icon": "far fa-list-ol",
-                    "default": "top3",
-                    "enum": ["top3", "highQuality"]
-                },
-                "msstatslfq_quant_summary_method": {
-                    "type": "string",
-                    "description": "which summary method to use: 'TMP' (Tukey's median polish) or 'linear' (linear mixed model)",
-                    "fa_icon": "far fa-list-ol",
-                    "default": "TMP",
-                    "enum": ["TMP", "linear"]
-                },
-                "msstats_remove_one_feat_prot": {
-                    "type": "boolean",
-                    "description": "Omit proteins with only one quantified feature?",
-                    "fa_icon": "far fa-check-square",
-                    "default": true
-                },
-                "msstatslfq_removeFewMeasurements": {
-                    "type": "boolean",
-                    "description": "Keep features with only one or two measurements across runs?",
-                    "fa_icon": "far fa-check-square",
-                    "default": true
-                }
-            },
-            "fa_icon": "fab fa-r-project"
         },
         "quality_control": {
             "title": "Quality control",
@@ -740,9 +665,6 @@
         },
         {
             "$ref": "#/$defs/DIA-NN"
-        },
-        {
-            "$ref": "#/$defs/statistical_post_processing"
         },
         {
             "$ref": "#/$defs/quality_control"

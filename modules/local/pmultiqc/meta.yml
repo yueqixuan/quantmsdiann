@@ -30,7 +30,7 @@ output:
       pattern: "multiqc_report.html"
   - quantmsdb:
       type: file
-      description: Sqlite3 database file stored protein psm and quantificaiton information
+      description: Sqlite3 database file stored protein psm and quantification information
       pattern: "*.db"
   - data:
       type: dir

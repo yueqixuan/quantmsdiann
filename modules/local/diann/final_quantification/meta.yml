@@ -47,7 +47,7 @@ output:
       type: file
       description: DIA-NN log file
       pattern: "diannsummary.log"
-  - version:
+  - versions:
       type: file
       description: File containing software version
       pattern: "versions.yml"

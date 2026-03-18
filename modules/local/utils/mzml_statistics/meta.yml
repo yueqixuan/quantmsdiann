@@ -22,7 +22,7 @@ output:
   - spectrum_df:
       type: file
       description: spectrum data file
-      pattern: "_spectrum_df.parquet"
+      pattern: "*_spectrum_df.parquet"
   - version:
       type: file
       description: File containing software version

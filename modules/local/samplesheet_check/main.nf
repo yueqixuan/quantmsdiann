@@ -9,7 +9,6 @@ process SAMPLESHEET_CHECK {
 
     input:
     path input_file
-    val validate_ontologies
 
     output:
     path "*.log", emit: log

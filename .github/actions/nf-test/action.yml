@@ -57,6 +57,7 @@ runs:
         conda-remove-defaults: true
 
     - name: Run nf-test
+      id: nf-test
       shell: bash
       env:
         NFT_WORKDIR: ${{ env.NFT_WORKDIR }}
