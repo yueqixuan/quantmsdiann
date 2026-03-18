@@ -1,7 +1,8 @@
 name: nf-core extended CI
-# Default tests (DIA-NN 1.8.1) always run.
-# Feature tests (QuantUMS, Parquet, latest) are conditional on file changes for PRs,
-# and always run on push to dev/master, releases, or manual dispatch.
+# Always tests:
+#   1. Default profiles (DIA-NN 1.8.1, public containers) for supported features
+#   2. All feature profiles against latest DIA-NN (2.2.0, private containers)
+#   3. Singularity execution (default profiles only)
 on:
   push:
     branches:
@@ -23,7 +24,8 @@ concurrency:
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 1: Default tests — always run (public biocontainers, DIA-NN 1.8.1)
+  # Job 1: Default tests — DIA-NN 1.8.1 (public biocontainers, no auth)
+  #         Tests only the features supported by 1.8.1
   # ──────────────────────────────────────────────────────────────────────────
   test-default:
     name: "Default [${{ matrix.test_profile }}] NXF=${{ matrix.NXF_VER }}"
@@ -100,48 +102,12 @@ jobs:
           if-no-files-found: warn
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 2: Detect which feature tests should run (for PRs only)
+  # Job 2: Latest DIA-NN (2.2.0) — test ALL features against latest version
+  #         Always runs on every PR and push to dev
   # ──────────────────────────────────────────────────────────────────────────
-  detect-changes:
-    name: Detect changed paths
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    outputs:
-      run_latest: ${{ steps.filter.outputs.latest }}
-      run_quantums: ${{ steps.filter.outputs.quantums }}
-      run_parquet: ${{ steps.filter.outputs.parquet }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            latest:
-              - 'modules/local/diann/**'
-              - 'workflows/dia.nf'
-              - 'workflows/quantmsdiann.nf'
-              - 'conf/tests/test_latest_dia.config'
-              - 'nextflow.config'
-            quantums:
-              - 'modules/local/diann/final_quantification/**'
-              - 'conf/tests/test_dia_quantums.config'
-              - 'nextflow.config'
-            parquet:
-              - 'modules/local/diann/final_quantification/**'
-              - 'modules/local/diann/diann_msstats/**'
-              - 'conf/tests/test_dia_parquet.config'
-              - 'nextflow.config'
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # Job 3: Feature tests — always run on push/release/dispatch
-  #         DIA-NN >= 1.9.2, requires private ghcr.io containers
-  # ──────────────────────────────────────────────────────────────────────────
-  test-features:
-    name: "Feature [${{ matrix.test_profile }}]"
-    if: >
-      github.event_name == 'release' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'))
+  test-latest:
+    name: "Latest [${{ matrix.test_profile }}]"
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'bigbio/quantmsdiann') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -179,108 +145,14 @@ jobs:
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Run pipeline with test data
+        if: github.event.pull_request.base.ref != 'master'
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
-      - name: Gather failed logs
-        if: failure() || cancelled()
+      - name: Run pipeline with test data (master branch)
+        if: github.event.pull_request.base.ref == 'master'
         run: |
-          mkdir failed_logs
-          failed=$(grep "FAILED" ${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
-          while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ | true ; done <<< "$failed"
-
-      - name: Set timestamp
-        if: always()
-        run: echo "TS=$(date +%s)" >> $GITHUB_ENV
-
-      - uses: actions/upload-artifact@v4
-        if: failure() || cancelled()
-        name: Upload failed logs
-        with:
-          name: failed_logs_${{ matrix.test_profile }}_${{ env.TS }}
-          include-hidden-files: true
-          path: failed_logs
-          overwrite: false
-          if-no-files-found: warn
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        name: Upload log
-        with:
-          name: nextflow_${{ matrix.test_profile }}_${{ env.TS }}.log
-          include-hidden-files: true
-          path: .nextflow.log
-          overwrite: false
-          if-no-files-found: warn
-
-  # ──────────────────────────────────────────────────────────────────────────
-  # Job 4: Feature tests on PRs — only when relevant files change
-  # ──────────────────────────────────────────────────────────────────────────
-  test-features-pr:
-    name: "Feature PR [${{ matrix.test_profile }}]"
-    needs: detect-changes
-    if: >
-      github.event_name == 'pull_request' && (
-        needs.detect-changes.outputs.run_latest == 'true' ||
-        needs.detect-changes.outputs.run_quantums == 'true' ||
-        needs.detect-changes.outputs.run_parquet == 'true'
-      )
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - test_profile: test_latest_dia
-            run_if: ${{ needs.detect-changes.outputs.run_latest }}
-          - test_profile: test_dia_quantums
-            run_if: ${{ needs.detect-changes.outputs.run_quantums }}
-          - test_profile: test_dia_parquet
-            run_if: ${{ needs.detect-changes.outputs.run_parquet }}
-    env:
-      NXF_ANSI_LOG: false
-      CAPSULE_LOG: none
-      TEST_PROFILE: ${{ matrix.test_profile }}
-      EXEC_PROFILE: docker
-
-    steps:
-      - name: Skip if not needed
-        if: matrix.run_if != 'true'
-        run: echo "Skipping ${{ matrix.test_profile }} — no relevant file changes" && exit 0
-
-      - name: Checkout repository
-        if: matrix.run_if == 'true'
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        if: matrix.run_if == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Set up Nextflow
-        if: matrix.run_if == 'true'
-        uses: nf-core/setup-nextflow@v2
-        with:
-          version: "25.04.0"
-
-      - name: Log in to GitHub Container Registry
-        if: matrix.run_if == 'true'
-        env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-        run: |
-          if [ -n "$GHCR_TOKEN" ]; then
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
-          fi
-
-      - name: Disk space cleanup
-        if: matrix.run_if == 'true'
-        uses: jlumbroso/free-disk-space@v1.3.1
-
-      - name: Run pipeline with test data
-        if: matrix.run_if == 'true'
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
+          nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
       - name: Gather failed logs
         if: failure() || cancelled()
@@ -299,24 +171,24 @@ jobs:
         if: failure() || cancelled()
         name: Upload failed logs
         with:
-          name: failed_logs_pr_${{ matrix.test_profile }}_${{ env.TS }}
+          name: failed_logs_latest_${{ matrix.test_profile }}_${{ env.TS }}
           include-hidden-files: true
           path: failed_logs
           overwrite: false
           if-no-files-found: warn
 
       - uses: actions/upload-artifact@v4
-        if: always() && matrix.run_if == 'true'
+        if: always()
         name: Upload log
         with:
-          name: nextflow_pr_${{ matrix.test_profile }}_${{ env.TS }}.log
+          name: nextflow_latest_${{ matrix.test_profile }}_${{ env.TS }}.log
           include-hidden-files: true
           path: .nextflow.log
           overwrite: false
           if-no-files-found: warn
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Job 5: Singularity — default tests only (public containers)
+  # Job 3: Singularity — default tests only (public containers)
   # ──────────────────────────────────────────────────────────────────────────
   test-singularity:
     name: "Singularity [${{ matrix.test_profile }}] NXF=${{ matrix.NXF_VER }}"
