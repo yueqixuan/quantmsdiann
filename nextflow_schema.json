@@ -120,27 +120,9 @@
         "spectrum_preprocessing": {
             "title": "Spectrum preprocessing",
             "type": "object",
-            "description": "In case you start from profile mode mzMLs or the internal preprocessing during conversion with the ThermoRawFileParser fails (e.g. due to new instrument types), preprocessing has to be performed with OpenMS. Use this section to configure.",
+            "description": "Configure file conversion and preprocessing options.",
             "default": "",
             "properties": {
-                "openms_peakpicking": {
-                    "type": "boolean",
-                    "description": "Activate OpenMS-internal peak picking",
-                    "fa_icon": "far fa-check-square",
-                    "help_text": "Activate OpenMS-internal peak picking with the tool PeakPickerHiRes. Skips already picked spectra."
-                },
-                "peakpicking_inmemory": {
-                    "type": "boolean",
-                    "description": "Perform peakpicking in memory",
-                    "fa_icon": "far fa-check-square",
-                    "help_text": "Perform peakpicking in memory. Use only if problems occur."
-                },
-                "peakpicking_ms_levels": {
-                    "type": "string",
-                    "description": "Which MS levels to pick as comma separated list. Leave empty for auto-detection.",
-                    "fa_icon": "fas fa-font",
-                    "help_text": "Which MS levels to pick as comma separated list, e.g. `--peakpicking_ms_levels 1,2`. Leave empty for auto-detection."
-                },
                 "convert_dotd": {
                     "type": "boolean",
                     "description": "Convert bruker .d files to mzML",
@@ -152,7 +134,7 @@
                     "default": true,
                     "description": "Force initial re-indexing of input mzML files. Also fixes some common mistakes in slightly incomplete/outdated mzMLs. (Default: true for safety)",
                     "fa_icon": "far fa-check-square",
-                    "help_text": "Force re-indexing in the beginning of the pipeline to make sure that indices are up-to-date and to avoid redundant indexing on-demand in steps that require an index (e.g., Comet)."
+                    "help_text": "Force re-indexing in the beginning of the pipeline to make sure that indices are up-to-date."
                 },
                 "mzml_statistics": {
                     "type": "boolean",
@@ -180,7 +162,7 @@
                     "description": "Database searches accounted for N-terminal methionine excision, a common co-translational modification where the initial methionine is enzymatically removed from proteins.",
                     "default": true,
                     "fa_icon": "far fa-check-square",
-                    "help_text": "Warning: not supported by sage yet."
+                    "help_text": "Database searches account for N-terminal methionine excision."
                 },
                 "allowed_missed_cleavages": {
                     "type": "integer",
@@ -208,14 +190,14 @@
                     "description": "Fragment mass tolerance used for database search. The default of 0.03 Da is for high-resolution instruments.",
                     "default": 0.03,
                     "fa_icon": "fas fa-sliders-h",
-                    "help_text": "Caution: for Comet we are estimating the `fragment_bin_tolerance` parameter based on this automatically. This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
+                    "help_text": "This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
                 },
                 "fragment_mass_tolerance_unit": {
                     "type": "string",
                     "description": "Fragment mass tolerance unit used for database search. Possible values are 'ppm' and 'Da' (default).",
                     "default": "Da",
                     "fa_icon": "fas fa-list-ol",
-                    "help_text": "Caution: for Comet we are estimating the `fragment_bin_tolerance` parameter based on this automatically. This value can be overridden via command line. If not specified, the value from the SDRF file will be used.",
+                    "help_text": "This value can be overridden via command line. If not specified, the value from the SDRF file will be used.",
                     "enum": ["Da", "ppm"]
                 },
                 "variable_mods": {
@@ -223,7 +205,7 @@
                     "description": "A comma-separated list of variable modifications with their Unimod name to be searched during database search",
                     "default": "Oxidation (M)",
                     "fa_icon": "fas fa-tasks",
-                    "help_text": "Specify which variable modifications should be applied to the database search (eg. '' or 'Oxidation (M)', see Unimod modifications in the style '({unimod name} ({optional term specificity} {optional origin})'). All possible modifications can be found in the restrictions mentioned in the command line documentation of e.g. [CometAdapter](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/TOPP_CometAdapter.html). Multiple variable modifications can be specified comma separated (e.g. 'Carbamidomethyl (C),Oxidation (M)'). This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
+                    "help_text": "Specify which variable modifications should be applied to the database search (e.g. 'Oxidation (M)'). Use Unimod names in the style '({unimod name} ({optional term specificity} {optional origin})'. Multiple variable modifications can be specified comma separated (e.g. 'Carbamidomethyl (C),Oxidation (M)'). This value can be overridden via command line. If not specified, the value from the SDRF file will be used."
                 },
                 "min_precursor_charge": {
                     "type": "integer",
@@ -239,13 +221,13 @@
                 },
                 "min_peptide_length": {
                     "type": "integer",
-                    "description": "Minimum peptide length to consider (works with MSGF and in newer Comet versions)",
+                    "description": "Minimum peptide length to consider",
                     "default": 6,
                     "fa_icon": "fas fa-sliders-h"
                 },
                 "max_peptide_length": {
                     "type": "integer",
-                    "description": "Maximum peptide length to consider (works with MSGF and in newer Comet versions)",
+                    "description": "Maximum peptide length to consider",
                     "default": 40,
                     "fa_icon": "fas fa-sliders-h"
                 },

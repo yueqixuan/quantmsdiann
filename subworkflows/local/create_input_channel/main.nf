@@ -1,5 +1,5 @@
 //
-// Create channel for input file
+// Create channel for input file (DIA-NN only pipeline)
 //
 include { SDRF_PARSING } from '../../../modules/local/sdrf_parsing/main'
 
@@ -22,7 +22,6 @@ workflow CREATE_INPUT_CHANNEL {
     def Set files = []
 
     def wrapper = [
-        labelling_type: "",
         acquisition_method: "",
         experiment_id: ch_sdrf,
     ]
@@ -30,19 +29,9 @@ workflow CREATE_INPUT_CHANNEL {
     ch_config
         .splitCsv(header: true, sep: '\t')
         .map { row -> create_meta_channel(row, enzymes, files, wrapper) }
-        .branch { item ->
-            ch_meta_config_dia: item[0].acquisition_method.contains("dia")
-            ch_meta_config_iso: item[0].labelling_type.contains("tmt") || item[0].labelling_type.contains("itraq")
-            ch_meta_config_lfq: item[0].labelling_type.contains("label free")
-        }
-        .set { result }
-    ch_meta_config_iso = result.ch_meta_config_iso
-    ch_meta_config_lfq = result.ch_meta_config_lfq
-    ch_meta_config_dia = result.ch_meta_config_dia
+        .set { ch_meta_config_dia }
 
     emit:
-    ch_meta_config_iso // [meta, [spectra_files ]]
-    ch_meta_config_lfq // [meta, [spectra_files ]]
     ch_meta_config_dia // [meta, [spectra files ]]
     ch_expdesign
     versions = ch_versions
@@ -77,15 +66,12 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
         exit(1, "ERROR: Please check input file -> File Uri does not exist!\n${filestr}")
     }
 
-    // Read metadata from SDRF config file
-    if (row["Proteomics Data Acquisition Method"].toString().toLowerCase().contains("data-dependent acquisition")) {
-        meta.acquisition_method = "dda"
-    }
-    else if (row["Proteomics Data Acquisition Method"].toString().toLowerCase().contains("data-independent acquisition")) {
+    // Validate acquisition method is DIA
+    if (row["Proteomics Data Acquisition Method"].toString().toLowerCase().contains("data-independent acquisition")) {
         meta.acquisition_method = "dia"
     }
     else {
-        log.error("Currently DIA and DDA are supported for the pipeline. Check and Fix your SDRF.")
+        log.error("This pipeline only supports Data-Independent Acquisition (DIA). Found: '${row["Proteomics Data Acquisition Method"]}'. Use the quantms pipeline for DDA workflows.")
         exit(1)
     }
 
@@ -196,32 +182,12 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
         exit(1)
     }
 
-    // Nothing to determine for dia. Only LFQ allowed there.
-    if (!meta.acquisition_method.equals("dia")) {
-        if (wrapper.labelling_type.equals("")) {
-            if (meta.labelling_type.contains("tmt") || meta.labelling_type.contains("itraq") || meta.labelling_type.contains("label free")) {
-                wrapper.labelling_type = meta.labelling_type
-            }
-            else {
-                log.error("Unsupported quantification type '${meta.labelling_type}'.")
-                exit(1)
-            }
-        }
-        else {
-            if (meta.labelling_type != wrapper.labelling_type) {
-                log.error("Currently, only one label type per design is supported: was '${wrapper.labelling_type}', now is '${meta.labelling_type}'.")
-                exit(1)
-            }
-        }
+    // Check for duplicate files
+    if (filestr in files) {
+        log.error("Currently only one DIA-NN setting per file is supported for the whole experiment. ${filestr} has multiple entries in your SDRF. Consider splitting your design into multiple experiments.")
+        exit(1)
     }
-
-    if (wrapper.labelling_type.contains("label free") || meta.acquisition_method == "dia") {
-        if (filestr in files) {
-            log.error("Currently only one search engine setting/DIA-NN setting per file is supported for the whole experiment. ${filestr} has multiple entries in your SDRF. Maybe you have a (isobaric) labelled experiment? Otherwise, consider splitting your design into multiple experiments.")
-            exit(1)
-        }
-        files += filestr
-    }
+    files += filestr
 
     return [meta, filestr]
 }

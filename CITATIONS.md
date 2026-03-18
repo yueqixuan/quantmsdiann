@@ -1,24 +1,8 @@
-# bigbio/quantms: Citations
+# bigbio/quantmsdiann: Citations
 
 ## [Pipeline](https://www.researchsquare.com/article/rs-3002027/v1)
 
 > Dai C, Pfeuffer J, Wang H, Zheng P, Käll L, Sachsenberg T, Demichev V, Bai M, Kohlbacher O, Perez-Riverol Y. quantms: a cloud-based pipeline for quantitative proteomics enables the reanalysis of public proteomics data. Nat Methods. 2024 Jul 4. doi: 10.1038/s41592-024-02343-1. Epub ahead of print. PMID: 38965444.
-
-## Pipeline research manuscripts
-
-- [proteogenomics](https://pubmed.ncbi.nlm.nih.gov/34904638/)
-
-  > Umer HM, Audain E, Zhu Y, Pfeuffer J, Sachsenberg T, Lehtiö J, Branca RM, Perez-Riverol Y. Generation of ENSEMBL-based proteogenomics databases boosts the identification of non-canonical peptides. Bioinformatics. 2022 Feb 7;38(5):1470-1472. doi: 10.1093/bioinformatics/btab838. PMID: 34904638; PMCID: PMC8825679.
-
-  > Wang, Dong, Robbin Bouwmeester, Ping Zheng, Chengxin Dai, Aniel Sanchez Puente, Kunxian Shu, Mingze Bai, Husen M. Umer, and Yasset Perez-Riverol. "Proteogenomics analysis of human tissues using pangenomes." bioRxiv (2024): 2024-05.
-
-- [lfq dda benchmark](https://pubmed.ncbi.nlm.nih.gov/37220883/)
-
-  > Bai M, Deng J, Dai C, Pfeuffer J, Sachsenberg T, Perez-Riverol Y. LFQ-Based Peptide and Protein Intensity Differential Expression Analysis. J Proteome Res. 2023 Jun 2;22(6):2114-2123. doi: 10.1021/acs.jproteome.2c00812. Epub 2023 May 23. PMID: 37220883; PMCID: PMC10243145.
-
-- [tissue absolute expression](https://pubmed.ncbi.nlm.nih.gov/37488995/)
-
-  > Wang H, Dai C, Pfeuffer J, Sachsenberg T, Sanchez A, Bai M, Perez-Riverol Y. Tissue-based absolute quantification using large-scale TMT and LFQ experiments. Proteomics. 2023 Jul 24:e2300188. doi: 10.1002/pmic.202300188. Epub ahead of print. PMID: 37488995.
 
 ## [nf-core](https://pubmed.ncbi.nlm.nih.gov/32055031/)
 
@@ -29,6 +13,10 @@
 > Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. doi: 10.1038/nbt.3820. PubMed PMID: 28398311.
 
 ## Pipeline tools
+
+- [DIA-NN](https://pubmed.ncbi.nlm.nih.gov/31768060/)
+
+  > Demichev V, Messner CB, Vernardis SI, Lilley KS, Ralser M. DIA-NN: neural networks and interference correction enable deep proteome coverage in high throughput. Nat Methods. 2020 Jan;17(1):41-44. doi: 10.1038/s41592-019-0638-x. Epub 2019 Nov 25. PMID: 31768060; PMCID: PMC6949130.
 
 - [thermorawfileparser](https://pubmed.ncbi.nlm.nih.gov/31755270/)
 
@@ -41,34 +29,6 @@
 - [OpenMS](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
   > Röst HL., Sachsenberg T., Aiche S., Bielow C., Weisser H., Aicheler F., Andreotti S., Ehrlich HC., Gutenbrunner P., Kenar E., Liang X., Nahnsen S., Nilse L., Pfeuffer J., Rosenberger G., Rurik M., Schmitt U., Veit J., Walzer M., Wojnar D., Wolski WE., Schilling O., Choudhary JS, Malmström L., Aebersold R., Reinert K., Kohlbacher O. (2016). OpenMS: a flexible open-source software platform for mass spectrometry data analysis. Nature methods, 13(9), 741–748. doi: 10.1038/nmeth.3959. PubMed PMID: 27575624; PubMed Central PMCID: PMC5617107.
-
-- [DIA-NN](https://pubmed.ncbi.nlm.nih.gov/31768060/)
-
-  > Demichev V, Messner CB, Vernardis SI, Lilley KS, Ralser M. DIA-NN: neural networks and interference correction enable deep proteome coverage in high throughput. Nat Methods. 2020 Jan;17(1):41-44. doi: 10.1038/s41592-019-0638-x. Epub 2019 Nov 25. PMID: 31768060; PMCID: PMC6949130.
-
-- [MSstats](https://www.ncbi.nlm.nih.gov/pubmed/24794931/)
-
-  > Choi M., Chang CY., Clough T., Broudy D., Killeen T., MacLean B., Vitek O. (2014). MSstats: an R package for statistical analysis of quantitative mass spectrometry-based proteomic experiments. Bioinformatics (Oxford, England), 30(17), 2524–2526. doi: 10.1093/bioinformatics/btu305. PubMed PMID: 24794931.
-
-- [Comet](https://www.ncbi.nlm.nih.gov/pubmed/23148064/)
-
-  > Eng JK., Jahan TA., Hoopmann MR. (2013). Comet: an open-source MS/MS sequence database search tool. Proteomics, 13(1), 22–24. doi: 10.1002/pmic.201200439. PubMed PMID: 23148064
-
-- [MS-GF+](https://www.ncbi.nlm.nih.gov/pubmed/25358478/)
-
-  > Kim S., Pevzner PA. (2014). MS-GF+ makes progress towards a universal database search tool for proteomics. Nature communications, 5, 5277. doi: 10.1038/ncomms6277. PubMed PMID: 25358478; PubMed Central PMCID: PMC5036525
-
-- [Sage](https://pubmed.ncbi.nlm.nih.gov/37819886/)
-
-  > Lazear MR. Sage: An Open-Source Tool for Fast Proteomics Searching and Quantification at Scale. J Proteome Res. 2023 Oct 11. doi: 10.1021/acs.jproteome.3c00486. Epub ahead of print. PMID: 37819886.
-
-- [Epifany](https://pubmed.ncbi.nlm.nih.gov/31975601/)
-
-  > Pfeuffer J, Sachsenberg T, Dijkstra TMH, Serang O, Reinert K, Kohlbacher O. EPIFANY: A Method for Efficient High-Confidence Protein Inference. J Proteome Res. 2020 Mar 6;19(3):1060-1072. doi: 10.1021/acs.jproteome.9b00566. Epub 2020 Feb 13. PMID: 31975601; PMCID: PMC7583457.
-
-- [luciphor](https://pubmed.ncbi.nlm.nih.gov/23918812/)
-
-  > Fermin D, Walmsley SJ, Gingras AC, Choi H, Nesvizhskii AI. LuciPHOr: algorithm for phosphorylation site localization with false localization rate estimation using modified target-decoy approach. Mol Cell Proteomics. 2013 Nov;12(11):3409-19. doi: 10.1074/mcp.M113.028928. Epub 2013 Aug 5. PMID: 23918812; PMCID: PMC3820951.
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
