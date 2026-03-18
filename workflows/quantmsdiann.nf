@@ -64,7 +64,7 @@ workflow QUANTMSDIANN {
 
     FILE_PREPARATION.out.results
         .branch { item ->
-            dia: item[0].acquisition_method.contains("dia")
+            dia: item[0].acquisition_method.toLowerCase().contains("dia")
         }
         .set { ch_fileprep_result }
     //
@@ -79,7 +79,7 @@ workflow QUANTMSDIANN {
     // Validate protein database
     //
     if (!params.database) {
-        exit(1, 'No protein database provided. Please specify --database <path/to/proteins.fasta>')
+        error('No protein database provided. Please specify --database <path/to/proteins.fasta>')
     }
     ch_database = file(params.database, checkIfExists: true)
 

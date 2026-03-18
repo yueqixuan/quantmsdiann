@@ -59,13 +59,14 @@ jobs:
       - name: Commit & push changes
         id: commit-and-push
         if: steps.pre-commit.outcome == 'failure'
+        continue-on-error: true
         run: |
           git config user.email "core@nf-co.re"
           git config user.name "nf-core-bot"
           git config push.default upstream
           git add .
           git status
-          git commit -m "[automated] Fix code linting"
+          git diff --staged --quiet || git commit -m "[automated] Fix code linting"
           git push
 
       - name: react if linting errors were fixed

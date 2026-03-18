@@ -12,7 +12,7 @@ workflow INPUT_CHECK {
 
     ch_software_versions = channel.empty()
 
-    SAMPLESHEET_CHECK ( input_file, params.validate_ontologies )
+    SAMPLESHEET_CHECK ( input_file )
     ch_software_versions = ch_software_versions.mix(SAMPLESHEET_CHECK.out.versions)
 
     emit:

@@ -6,6 +6,7 @@
     "type": "array",
     "items": {
         "type": "object",
+        "required": ["source name", "comment[data file]", "assay name"],
         "properties": {
             "source name": {
                 "type": "string",

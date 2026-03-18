@@ -399,7 +399,7 @@
                 },
                 "skip_preliminary_analysis": {
                     "type": "boolean",
-                    "description": "Skip the preliminary analysis step, thus use the passed spectral library as-is instead of generating a local concensus library.",
+                    "description": "Skip the preliminary analysis step, thus use the passed spectral library as-is instead of generating a local consensus library.",
                     "fa_icon": "fas fa-forward",
                     "hidden": false
                 },

@@ -61,12 +61,12 @@ jobs:
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Run pipeline with test data
-        if: github.event.pull_request.base.ref != 'master'
+        if: github.ref != 'refs/heads/master' && github.event.pull_request.base.ref != 'master'
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
       - name: Run pipeline with test data (master branch)
-        if: github.event.pull_request.base.ref == 'master'
+        if: github.ref == 'refs/heads/master' || github.event.pull_request.base.ref == 'master'
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
@@ -76,7 +76,7 @@ jobs:
           mkdir -p failed_logs
           if [ -f "${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt" ]; then
             failed=$(grep "FAILED" ${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
-            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ | true ; done <<< "$failed"
+            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ || true ; done <<< "$failed"
           fi
 
       - name: Set timestamp
@@ -147,12 +147,12 @@ jobs:
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Run pipeline with test data
-        if: github.event.pull_request.base.ref != 'master'
+        if: github.ref != 'refs/heads/master' && github.event.pull_request.base.ref != 'master'
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
       - name: Run pipeline with test data (master branch)
-        if: github.event.pull_request.base.ref == 'master'
+        if: github.ref == 'refs/heads/master' || github.event.pull_request.base.ref == 'master'
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
@@ -162,7 +162,7 @@ jobs:
           mkdir -p failed_logs
           if [ -f "${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt" ]; then
             failed=$(grep "FAILED" ${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
-            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ | true ; done <<< "$failed"
+            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ || true ; done <<< "$failed"
           fi
 
       - name: Set timestamp
@@ -236,12 +236,12 @@ jobs:
         uses: jlumbroso/free-disk-space@v1.3.1
 
       - name: Run pipeline with test data
-        if: github.event.pull_request.base.ref != 'master'
+        if: github.ref != 'refs/heads/master' && github.event.pull_request.base.ref != 'master'
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE,dev --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
       - name: Run pipeline with test data (master branch)
-        if: github.event.pull_request.base.ref == 'master'
+        if: github.ref == 'refs/heads/master' || github.event.pull_request.base.ref == 'master'
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile $TEST_PROFILE,$EXEC_PROFILE --outdir ${TEST_PROFILE}_${EXEC_PROFILE}_results
 
@@ -251,7 +251,7 @@ jobs:
           mkdir -p failed_logs
           if [ -f "${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt" ]; then
             failed=$(grep "FAILED" ${TEST_PROFILE}_${EXEC_PROFILE}_results/pipeline_info/execution_trace.txt | cut -f 2)
-            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ | true ; done <<< "$failed"
+            while read -r line ; do cp $(ls work/${line}*/*.log) failed_logs/ || true ; done <<< "$failed"
           fi
 
       - name: Set timestamp
