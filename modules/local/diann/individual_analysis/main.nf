@@ -57,6 +57,8 @@ process INDIVIDUAL_ANALYSIS {
         mass_acc_ms1 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 15 | tr -cd \"[0-9]\")"
     }
 
+    diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
+
     """
     # Extract --var-mod and --fixed-mod flags from diann_config.cfg (DIA-NN best practice)
     mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+)' | tr '\\n' ' ')
@@ -74,6 +76,7 @@ process INDIVIDUAL_ANALYSIS {
             --no-main-report \\
             --relaxed-prot-inf \\
             --pg-level $params.pg_level \\
+            ${diann_no_peptidoforms} \\
             \${mod_flags} \\
             $args
 
