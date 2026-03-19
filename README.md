@@ -16,8 +16,6 @@
 
 The pipeline takes SDRF metadata and mass spectrometry data files as input, performs DIA-NN-based identification and quantification, and produces protein/peptide quantification matrices, MSstats-compatible output, and QC reports.
 
-### Workflow Diagram
-
 <p align="center">
   <img src="docs/images/quantmsdiann_workflow.svg" alt="quantmsdiann workflow" width="800">
 </p>
