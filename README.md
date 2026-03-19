@@ -19,7 +19,7 @@ The pipeline takes SDRF metadata and mass spectrometry data files as input, perf
 ### Workflow Diagram
 
 <p align="center">
-  <img src="docs/images/quantmsdiann_workflow.svg" alt="quantmsdiann workflow" width="520">
+  <img src="docs/images/quantmsdiann_workflow.svg" alt="quantmsdiann workflow" width="800">
 </p>
 
 ### Supported Input Formats
