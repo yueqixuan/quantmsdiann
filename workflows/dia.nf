@@ -7,7 +7,6 @@
 //
 // MODULES: Local to the pipeline
 //
-include { GENERATE_CFG                } from '../modules/local/diann/generate_cfg/main'
 include { DIANN_MSSTATS              } from '../modules/local/diann/diann_msstats/main'
 include { PRELIMINARY_ANALYSIS        } from '../modules/local/diann/preliminary_analysis/main'
 include { ASSEMBLE_EMPIRICAL_LIBRARY  } from '../modules/local/diann/assemble_empirical_library/main'
@@ -30,6 +29,7 @@ workflow DIA {
     take:
     ch_file_preparation_results
     ch_expdesign
+    ch_diann_cfg
 
     main:
 
@@ -44,12 +44,9 @@ workflow DIA {
 
     meta = ch_result.meta.unique { m -> m.experiment_id }
 
-    GENERATE_CFG(meta)
-    ch_software_versions = ch_software_versions
-        .mix(GENERATE_CFG.out.versions)
-
+    // diann_config.cfg comes directly from SDRF_PARSING (convert-diann)
     // Convert to value channel so it can be consumed by all per-file processes
-    ch_diann_cfg = GENERATE_CFG.out.diann_cfg.first()
+    ch_diann_cfg_val = ch_diann_cfg.first()
 
     //
     // MODULE: SILICOLIBRARYGENERATION
@@ -57,7 +54,7 @@ workflow DIA {
     if (params.diann_speclib != null && params.diann_speclib.toString() != "") {
         speclib = channel.from(file(params.diann_speclib, checkIfExists: true))
     } else {
-        INSILICO_LIBRARY_GENERATION(ch_searchdb, ch_diann_cfg)
+        INSILICO_LIBRARY_GENERATION(ch_searchdb, ch_diann_cfg_val)
         speclib = INSILICO_LIBRARY_GENERATION.out.predict_speclib
     }
 
@@ -80,12 +77,12 @@ workflow DIA {
             empirical_lib_files = preanalysis_subset
                 .map { result -> result[1] }
                 .collect( sort: { a, b -> file(a).getName() <=> file(b).getName() } )
-            PRELIMINARY_ANALYSIS(preanalysis_subset.combine(speclib), ch_diann_cfg)
+            PRELIMINARY_ANALYSIS(preanalysis_subset.combine(speclib), ch_diann_cfg_val)
         } else {
             empirical_lib_files = ch_file_preparation_results
                 .map { result -> result[1] }
                 .collect( sort: { a, b -> file(a).getName() <=> file(b).getName() } )
-            PRELIMINARY_ANALYSIS(ch_file_preparation_results.combine(speclib), ch_diann_cfg)
+            PRELIMINARY_ANALYSIS(ch_file_preparation_results.combine(speclib), ch_diann_cfg_val)
         }
         ch_software_versions = ch_software_versions
             .mix(PRELIMINARY_ANALYSIS.out.versions)
@@ -99,7 +96,7 @@ workflow DIA {
             meta,
             PRELIMINARY_ANALYSIS.out.diann_quant.collect(),
             speclib,
-            ch_diann_cfg
+            ch_diann_cfg_val
         )
         ch_software_versions = ch_software_versions
             .mix(ASSEMBLE_EMPIRICAL_LIBRARY.out.versions)
@@ -114,7 +111,7 @@ workflow DIA {
     //
     // MODULE: INDIVIDUAL_ANALYSIS
     //
-    INDIVIDUAL_ANALYSIS(indiv_fin_analysis_in, ch_diann_cfg)
+    INDIVIDUAL_ANALYSIS(indiv_fin_analysis_in, ch_diann_cfg_val)
     ch_software_versions = ch_software_versions
         .mix(INDIVIDUAL_ANALYSIS.out.versions)
 
@@ -137,7 +134,7 @@ workflow DIA {
         empirical_lib,
         INDIVIDUAL_ANALYSIS.out.diann_quant.collect(),
         ch_searchdb,
-        ch_diann_cfg)
+        ch_diann_cfg_val)
 
     ch_software_versions = ch_software_versions.mix(
         FINAL_QUANTIFICATION.out.versions
@@ -179,6 +176,10 @@ def preprocessed_meta(LinkedHashMap meta) {
     parameters['fragmentmasstolerance']         = meta.fragmentmasstolerance
     parameters['fragmentmasstoleranceunit']     = meta.fragmentmasstoleranceunit
     parameters['enzyme']                        = meta.enzyme
+    parameters['ms1minmz']                      = meta.ms1minmz
+    parameters['ms1maxmz']                      = meta.ms1maxmz
+    parameters['ms2minmz']                      = meta.ms2minmz
+    parameters['ms2maxmz']                      = meta.ms2maxmz
 
     return parameters
 }

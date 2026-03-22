@@ -25,7 +25,9 @@ process PRELIMINARY_ANALYSIS {
     def blocked = ['--use-quant', '--gen-spec-lib', '--out-lib', '--matrices', '--out',
          '--temp', '--threads', '--verbose', '--lib', '--f', '--fasta',
          '--mass-acc', '--mass-acc-ms1', '--window',
-         '--quick-mass-acc', '--min-corr', '--corr-diff', '--time-corr-only']
+         '--quick-mass-acc', '--min-corr', '--corr-diff', '--time-corr-only',
+         '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
+         '--monitor-mod', '--var-mod', '--fixed-mod']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -55,6 +57,12 @@ process PRELIMINARY_ANALYSIS {
     // Notes: Use double quotes for params, so that it is escaped in the shell.
     scan_window = params.scan_window_automatic ? '' : "--window $params.scan_window"
 
+    // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
+    min_pr_mz = meta['ms1minmz'] ? "--min-pr-mz ${meta['ms1minmz']}" : ""
+    max_pr_mz = meta['ms1maxmz'] ? "--max-pr-mz ${meta['ms1maxmz']}" : ""
+    min_fr_mz = meta['ms2minmz'] ? "--min-fr-mz ${meta['ms2minmz']}" : ""
+    max_fr_mz = meta['ms2maxmz'] ? "--max-fr-mz ${meta['ms2maxmz']}" : ""
+
     """
     # Precursor Tolerance value was: ${meta['precursormasstolerance']}
     # Fragment Tolerance value was: ${meta['fragmentmasstolerance']}
@@ -63,7 +71,7 @@ process PRELIMINARY_ANALYSIS {
 
     # Final mass accuracy is '${mass_acc}'
 
-    # Extract --var-mod and --fixed-mod flags from diann_config.cfg (DIA-NN best practice)
+    # Extract --var-mod and --fixed-mod flags from diann_config.cfg (no --monitor-mod here: calibration needs all peptides)
     mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+)' | tr '\\n' ' ')
 
     diann   --lib ${predict_library} \\
@@ -75,6 +83,10 @@ process PRELIMINARY_ANALYSIS {
             ${mass_acc} \\
             ${quick_mass_acc} \\
             ${performance_flags} \\
+            ${min_pr_mz} \\
+            ${max_pr_mz} \\
+            ${min_fr_mz} \\
+            ${max_fr_mz} \\
             ${diann_no_peptidoforms} \\
             \${mod_flags} \\
             $args

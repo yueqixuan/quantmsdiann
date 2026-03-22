@@ -88,6 +88,91 @@ nextflow run . -profile test_dia_dotd,docker --outdir results
 nextflow run . -profile test_latest_dia,docker --outdir results
 ```
 
+## DIA-NN parameters
+
+The pipeline passes parameters to DIA-NN at different steps. Some parameters come from the SDRF metadata (per-file), some from `nextflow.config` defaults, and some from the command line. The table below documents each parameter, its source, and which pipeline steps use it.
+
+### Parameter sources
+
+Parameters are resolved in this priority order:
+1. **SDRF metadata** (per-file, from `convert-diann` design file) — highest priority
+2. **Pipeline parameters** (`--param_name` on command line or params file)
+3. **Nextflow defaults** (`nextflow.config`) — lowest priority
+
+### Pipeline steps
+
+| Step | Description |
+|------|-------------|
+| **INSILICO_LIBRARY_GENERATION** | Predicts a spectral library from FASTA using DIA-NN's deep learning |
+| **PRELIMINARY_ANALYSIS** | Per-file calibration and mass accuracy estimation (first pass) |
+| **ASSEMBLE_EMPIRICAL_LIBRARY** | Builds consensus empirical library from preliminary results |
+| **INDIVIDUAL_ANALYSIS** | Per-file quantification with the empirical library (second pass) |
+| **FINAL_QUANTIFICATION** | Aggregates all files into protein/peptide matrices |
+
+### Per-file parameters from SDRF
+
+These parameters are extracted per-file from the SDRF via `convert-diann` and stored in `diann_design.tsv`:
+
+| DIA-NN flag | SDRF column | Design column | Steps | Notes |
+|---|---|---|---|---|
+| `--mass-acc-ms1` | `comment[precursor mass tolerance]` | `PrecursorMassTolerance` | PRELIMINARY, INDIVIDUAL | Falls back to auto-detect if missing or not ppm |
+| `--mass-acc` | `comment[fragment mass tolerance]` | `FragmentMassTolerance` | PRELIMINARY, INDIVIDUAL | Falls back to auto-detect if missing or not ppm |
+| `--min-pr-mz` | `comment[ms1 scan range]` or `comment[ms min mz]` | `MS1MinMz` | PRELIMINARY, INDIVIDUAL | Per-file for GPF; global broadest for INSILICO |
+| `--max-pr-mz` | `comment[ms1 scan range]` or `comment[ms max mz]` | `MS1MaxMz` | PRELIMINARY, INDIVIDUAL | Per-file for GPF; global broadest for INSILICO |
+| `--min-fr-mz` | `comment[ms2 scan range]` or `comment[ms2 min mz]` | `MS2MinMz` | PRELIMINARY, INDIVIDUAL | Per-file for GPF; global broadest for INSILICO |
+| `--max-fr-mz` | `comment[ms2 scan range]` or `comment[ms2 max mz]` | `MS2MaxMz` | PRELIMINARY, INDIVIDUAL | Per-file for GPF; global broadest for INSILICO |
+
+### Global parameters from config
+
+These parameters apply globally across all files. They are set in `diann_config.cfg` (from SDRF) or as pipeline parameters:
+
+| DIA-NN flag | Pipeline parameter | Default | Steps | Notes |
+|---|---|---|---|---|
+| `--cut` | (from SDRF enzyme) | — | ALL | Enzyme cut rule, derived from `comment[cleavage agent details]` |
+| `--fixed-mod` | (from SDRF) | — | ALL | Fixed modifications from `comment[modification parameters]` |
+| `--var-mod` | (from SDRF) | — | ALL | Variable modifications from `comment[modification parameters]` |
+| `--monitor-mod` | `--enable_mod_localization` + `--mod_localization` | `false` / `Phospho (S),Phospho (T),Phospho (Y)` | INDIVIDUAL, FINAL | PTM site localization scoring |
+| `--window` | `--scan_window` | `8` | PRELIMINARY, ASSEMBLE, INDIVIDUAL | Scan window; auto-detected when `--scan_window_automatic=true` |
+| `--quick-mass-acc` | `--quick_mass_acc` | `true` | PRELIMINARY | Fast mass accuracy calibration |
+| `--min-corr 2 --corr-diff 1 --time-corr-only` | `--performance_mode` | `true` | PRELIMINARY | High-speed, low-RAM mode |
+| `--pg-level` | `--pg_level` | `2` | INDIVIDUAL, FINAL | Protein grouping level |
+| `--species-genes` | `--species_genes` | `false` | FINAL | Use species-specific gene names |
+| `--no-norm` | `--diann_normalize` | `true` | FINAL | Disable normalization when `false` |
+
+### PTM site localization (`--monitor-mod`)
+
+DIA-NN supports PTM site localization scoring via `--monitor-mod`. When enabled, DIA-NN reports `PTM.Site.Confidence` and `PTM.Q.Value` columns for the specified modifications.
+
+**Important**: `--monitor-mod` is only applied to **INDIVIDUAL_ANALYSIS** and **FINAL_QUANTIFICATION**. It is intentionally excluded from earlier steps because:
+
+- **INSILICO_LIBRARY_GENERATION**: Library generation needs all peptides (modified + unmodified). `--monitor-mod` would filter to only modified peptides.
+- **PRELIMINARY_ANALYSIS**: Calibration needs all peptides for robust mass accuracy estimation.
+- **ASSEMBLE_EMPIRICAL_LIBRARY**: Library assembly needs broad peptide coverage.
+
+To enable PTM site localization:
+
+```bash
+nextflow run bigbio/quantmsdiann \
+    --enable_mod_localization \
+    --mod_localization 'Phospho (S),Phospho (T),Phospho (Y)' \
+    ...
+```
+
+The parameter accepts two formats:
+- **Modification names** (quantms-compatible): `Phospho (S),Phospho (T),Phospho (Y)` — site info in parentheses is stripped, the base name is mapped to UniMod
+- **UniMod accessions** (direct): `UniMod:21,UniMod:1`
+
+Supported modification name mappings:
+
+| Name | UniMod ID | Example |
+|---|---|---|
+| Phospho | `UniMod:21` | `Phospho (S),Phospho (T),Phospho (Y)` |
+| GlyGly | `UniMod:121` | `GlyGly (K)` |
+| Acetyl | `UniMod:1` | `Acetyl (Protein N-term)` |
+| Oxidation | `UniMod:35` | `Oxidation (M)` |
+| Deamidated | `UniMod:7` | `Deamidated (N),Deamidated (Q)` |
+| Methylation | `UniMod:34` | `Methylation (K),Methylation (R)` |
+
 ## Optional outputs
 
 By default, only final result files are published. Intermediate files can be exported using `save_*` parameters or via `ext.*` properties in a custom Nextflow config.

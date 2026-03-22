@@ -25,7 +25,9 @@ process INDIVIDUAL_ANALYSIS {
     def blocked = ['--use-quant', '--gen-spec-lib', '--out-lib', '--matrices', '--out', '--rt-profiling',
          '--temp', '--threads', '--verbose', '--lib', '--f', '--fasta',
          '--mass-acc', '--mass-acc-ms1', '--window',
-         '--no-ifs-removal', '--no-main-report', '--relaxed-prot-inf', '--pg-level']
+         '--no-ifs-removal', '--no-main-report', '--relaxed-prot-inf', '--pg-level',
+         '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
+         '--monitor-mod', '--var-mod', '--fixed-mod']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -59,9 +61,15 @@ process INDIVIDUAL_ANALYSIS {
 
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
 
+    // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
+    min_pr_mz = meta['ms1minmz'] ? "--min-pr-mz ${meta['ms1minmz']}" : ""
+    max_pr_mz = meta['ms1maxmz'] ? "--max-pr-mz ${meta['ms1maxmz']}" : ""
+    min_fr_mz = meta['ms2minmz'] ? "--min-fr-mz ${meta['ms2minmz']}" : ""
+    max_fr_mz = meta['ms2maxmz'] ? "--max-fr-mz ${meta['ms2maxmz']}" : ""
+
     """
-    # Extract --var-mod and --fixed-mod flags from diann_config.cfg (DIA-NN best practice)
-    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+)' | tr '\\n' ' ')
+    # Extract --var-mod, --fixed-mod, and --monitor-mod flags from diann_config.cfg
+    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+|--monitor-mod\\s+\\S+)' | tr '\\n' ' ')
 
     diann   --lib ${library} \\
             --f ${ms_file} \\
@@ -76,6 +84,10 @@ process INDIVIDUAL_ANALYSIS {
             --no-main-report \\
             --relaxed-prot-inf \\
             --pg-level $params.pg_level \\
+            ${min_pr_mz} \\
+            ${max_pr_mz} \\
+            ${min_fr_mz} \\
+            ${max_fr_mz} \\
             ${diann_no_peptidoforms} \\
             \${mod_flags} \\
             $args

@@ -29,7 +29,7 @@ process INSILICO_LIBRARY_GENERATION {
          '--missed-cleavages', '--min-pep-len', '--max-pep-len',
          '--min-pr-charge', '--max-pr-charge', '--var-mods',
          '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
-         '--met-excision']
+         '--met-excision', '--monitor-mod']
     // Sort by length descending so longer flags (e.g. --fasta-search) are matched before shorter prefixes (--fasta, --f)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
