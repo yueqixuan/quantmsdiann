@@ -406,8 +406,7 @@
                 "diann_im_window": {
                     "type": "number",
                     "description": "Set '--im-window' to ensure the IM extraction window is not smaller than the specified value.",
-                    "fa_icon": "fas fa-filter",
-                    "default": null
+                    "fa_icon": "fas fa-filter"
                 },
                 "diann_use_quant": {
                     "type": "boolean",
