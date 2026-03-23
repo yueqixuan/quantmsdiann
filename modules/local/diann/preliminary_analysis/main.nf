@@ -71,8 +71,8 @@ process PRELIMINARY_ANALYSIS {
 
     # Final mass accuracy is '${mass_acc}'
 
-    # Extract --var-mod and --fixed-mod flags from diann_config.cfg (no --monitor-mod here: calibration needs all peptides)
-    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+)' | tr '\\n' ' ')
+    # Extract --var-mod, --fixed-mod, and --monitor-mod flags from diann_config.cfg
+    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+|--monitor-mod\\s+\\S+)' | tr '\\n' ' ')
 
     diann   --lib ${predict_library} \\
             --f ${ms_file} \\

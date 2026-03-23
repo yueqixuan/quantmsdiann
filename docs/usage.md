@@ -131,7 +131,7 @@ These parameters apply globally across all files. They are set in `diann_config.
 | `--cut` | (from SDRF enzyme) | — | ALL | Enzyme cut rule, derived from `comment[cleavage agent details]` |
 | `--fixed-mod` | (from SDRF) | — | ALL | Fixed modifications from `comment[modification parameters]` |
 | `--var-mod` | (from SDRF) | — | ALL | Variable modifications from `comment[modification parameters]` |
-| `--monitor-mod` | `--enable_mod_localization` + `--mod_localization` | `false` / `Phospho (S),Phospho (T),Phospho (Y)` | INDIVIDUAL, FINAL | PTM site localization scoring |
+| `--monitor-mod` | `--enable_mod_localization` + `--mod_localization` | `false` / `Phospho (S),Phospho (T),Phospho (Y)` | PRELIMINARY, ASSEMBLE, INDIVIDUAL, FINAL | PTM site localization scoring (DIA-NN 1.8.x only) |
 | `--window` | `--scan_window` | `8` | PRELIMINARY, ASSEMBLE, INDIVIDUAL | Scan window; auto-detected when `--scan_window_automatic=true` |
 | `--quick-mass-acc` | `--quick_mass_acc` | `true` | PRELIMINARY | Fast mass accuracy calibration |
 | `--min-corr 2 --corr-diff 1 --time-corr-only` | `--performance_mode` | `true` | PRELIMINARY | High-speed, low-RAM mode |
@@ -143,11 +143,13 @@ These parameters apply globally across all files. They are set in `diann_config.
 
 DIA-NN supports PTM site localization scoring via `--monitor-mod`. When enabled, DIA-NN reports `PTM.Site.Confidence` and `PTM.Q.Value` columns for the specified modifications.
 
-**Important**: `--monitor-mod` is only applied to **INDIVIDUAL_ANALYSIS** and **FINAL_QUANTIFICATION**. It is intentionally excluded from earlier steps because:
+**Important**: `--monitor-mod` is applied to all DIA-NN steps **except INSILICO_LIBRARY_GENERATION** (where it has no effect). It is particularly important for:
 
-- **INSILICO_LIBRARY_GENERATION**: Library generation needs all peptides (modified + unmodified). `--monitor-mod` would filter to only modified peptides.
-- **PRELIMINARY_ANALYSIS**: Calibration needs all peptides for robust mass accuracy estimation.
-- **ASSEMBLE_EMPIRICAL_LIBRARY**: Library assembly needs broad peptide coverage.
+- **PRELIMINARY_ANALYSIS**: Affects PTM-aware scoring during calibration.
+- **ASSEMBLE_EMPIRICAL_LIBRARY**: Strongly affects empirical library generation for PTM peptides.
+- **INDIVIDUAL_ANALYSIS** and **FINAL_QUANTIFICATION**: Enables PTM site confidence scoring.
+
+Note: For DIA-NN 2.0+, `--monitor-mod` is no longer needed — PTM localization is handled automatically by `--var-mod`. The flag is only used for DIA-NN 1.8.x.
 
 To enable PTM site localization:
 
