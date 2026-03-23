@@ -60,6 +60,8 @@ process INDIVIDUAL_ANALYSIS {
     }
 
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
+    diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
+    diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
 
     // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
     min_pr_mz = meta['ms1minmz'] ? "--min-pr-mz ${meta['ms1minmz']}" : ""
@@ -89,6 +91,8 @@ process INDIVIDUAL_ANALYSIS {
             ${min_fr_mz} \\
             ${max_fr_mz} \\
             ${diann_no_peptidoforms} \\
+            ${diann_tims_sum} \\
+            ${diann_im_window} \\
             \${mod_flags} \\
             $args
 
