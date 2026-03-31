@@ -302,6 +302,21 @@
             "description": "Settings for DIA-NN - a universal software for data-independent acquisition (DIA) proteomics data processing.",
             "default": "",
             "properties": {
+                "diann_version": {
+                    "type": "string",
+                    "description": "Specify the DIA-NN version to be used in the workflow.",
+                    "fa_icon": "fas fa-tag"
+                },
+                "enable_mod_localization": {
+                    "type": "boolean",
+                    "description": "Enable or disable modification localization scoring in DIA-NN.",
+                    "fa_icon": "fas fa-map-marker-alt"
+                },
+                "mod_localization": {
+                    "type": "string",
+                    "description": "Specify the modification localization parameters for DIA-NN.",
+                    "fa_icon": "fas fa-cogs"
+                },
                 "mass_acc_automatic": {
                     "type": "boolean",
                     "default": true,
@@ -320,6 +335,20 @@
                     "fa_icon": "fas fa-filter",
                     "help_text": " Ideally, should be approximately equal to the average number of data points per peak",
                     "default": 8
+                },
+                "mass_acc_ms2": {
+                    "type": "number",
+                    "description": "Set the MS2 mass accuracy (tolerance) to a specific value in ppm.",
+                    "fa_icon": "fas fa-bullseye",
+                    "help_text": "If specified, this overrides the automatic calibration. Corresponds to the --mass-acc parameter in DIA-NN.",
+                    "default": 15
+                },
+                "mass_acc_ms1": {
+                    "type": "number",
+                    "description": "Set the MS1 mass accuracy (tolerance) to a specific value in ppm.",
+                    "fa_icon": "fas fa-bullseye",
+                    "help_text": "If specified, this overrides the automatic calibration. Corresponds to the --mass-acc-ms1 parameter in DIA-NN.",
+                    "default": 15
                 },
                 "performance_mode": {
                     "type": "boolean",

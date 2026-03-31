@@ -8,7 +8,7 @@ process INDIVIDUAL_ANALYSIS {
         'docker.io/biocontainers/diann:v1.8.1_cv1' }"
 
     input:
-    tuple val(meta), path(ms_file), path(fasta), path(diann_log), path(library)
+    tuple val(meta), path(ms_file), path(fasta), path(library)
     path(diann_config)
 
     output:
@@ -44,19 +44,39 @@ process INDIVIDUAL_ANALYSIS {
         }
     }
 
-    scan_window = params.scan_window
-
-    if (params.mass_acc_automatic | params.scan_window_automatic) {
-        mass_acc_ms2 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 11 | tr -cd \"[0-9]\")"
-        scan_window = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 19 | tr -cd \"[0-9]\")"
-        mass_acc_ms1 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 15 | tr -cd \"[0-9]\")"
-    } else if (meta['precursormasstoleranceunit'].toLowerCase().endsWith('ppm') && meta['fragmentmasstoleranceunit'].toLowerCase().endsWith('ppm')) {
+    if (params.mass_acc_automatic || params.scan_window_automatic) {
+        if (meta.mass_acc_ms2 != "0" && meta.mass_acc_ms2 != null) {
+            mass_acc_ms2 = meta.mass_acc_ms2
+            mass_acc_ms1 = meta.mass_acc_ms1
+            scan_window  = meta.scan_window
+        }
+        else if (meta['fragmentmasstolerance']) {
+            mass_acc_ms2 = meta['fragmentmasstolerance']
+            mass_acc_ms1 = meta['precursormasstolerance']
+            scan_window  = params.scan_window
+        }
+        else {
+            mass_acc_ms2 = params.mass_acc_ms2
+            mass_acc_ms1 = params.mass_acc_ms1
+            scan_window  = params.scan_window
+        }
+    } else if (meta['precursormasstoleranceunit']?.toLowerCase()?.endsWith('ppm') && meta['fragmentmasstoleranceunit']?.toLowerCase()?.endsWith('ppm')) {
         mass_acc_ms1 = meta["precursormasstolerance"]
         mass_acc_ms2 = meta["fragmentmasstolerance"]
     } else {
-        mass_acc_ms2 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 11 | tr -cd \"[0-9]\")"
-        scan_window = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 19 | tr -cd \"[0-9]\")"
-        mass_acc_ms1 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 15 | tr -cd \"[0-9]\")"
+        if (meta.mass_acc_ms2 != "0" && meta.mass_acc_ms2 != null) {
+            mass_acc_ms2 = meta.mass_acc_ms2
+            mass_acc_ms1 = meta.mass_acc_ms1
+            scan_window  = meta.scan_window
+        } else if (meta['fragmentmasstolerance']) {
+            mass_acc_ms2 = meta['fragmentmasstolerance']
+            mass_acc_ms1 = meta['precursormasstolerance']
+            scan_window  = params.scan_window
+        } else {
+            mass_acc_ms2 = params.mass_acc_ms2
+            mass_acc_ms1 = params.mass_acc_ms1
+            scan_window  = params.scan_window
+        }
     }
 
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
