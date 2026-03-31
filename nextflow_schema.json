@@ -321,6 +321,20 @@
                     "help_text": " Ideally, should be approximately equal to the average number of data points per peak",
                     "default": 8
                 },
+                "mass_acc_ms2": {
+                    "type": "number",
+                    "description": "Set the MS2 mass accuracy (tolerance) to a specific value in ppm.",
+                    "fa_icon": "fas fa-bullseye",
+                    "help_text": "If specified, this overrides the automatic calibration. Corresponds to the --mass-acc parameter in DIA-NN.",
+                    "default": 15
+                },
+                "mass_acc_ms1": {
+                    "type": "number",
+                    "description": "Set the MS1 mass accuracy (tolerance) to a specific value in ppm.",
+                    "fa_icon": "fas fa-bullseye",
+                    "help_text": "If specified, this overrides the automatic calibration. Corresponds to the --mass-acc-ms1 parameter in DIA-NN.",
+                    "default": 15
+                },
                 "performance_mode": {
                     "type": "boolean",
                     "description": "Set Low RAM & High Speed Mode for DIANN, including min-corr, corr-diff, and time-corr-only three parameters",

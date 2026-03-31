@@ -59,12 +59,30 @@ workflow DIA {
     }
 
     if (params.skip_preliminary_analysis) {
-        assembly_log = channel.fromPath(params.empirical_assembly_log)
-        empirical_library = channel.fromPath(params.diann_speclib)
-        indiv_fin_analysis_in = ch_file_preparation_results.combine(ch_searchdb)
-            .combine(assembly_log)
-            .combine(empirical_library)
-        empirical_lib = empirical_library
+        def log_file = params.empirical_assembly_log ? file(params.empirical_assembly_log) : null
+        def parsed_m2 = "0"
+        def parsed_m1 = "0"
+        def parsed_w  = "0"        
+        if (log_file && log_file.exists()) {
+            def matcher = log_file.text =~ /Mass accuracy = ([0-9.]+)ppm, MS1 accuracy = ([0-9.]+)ppm, Scan window = ([0-9.]+)/
+            if (matcher) {
+                parsed_m2 = matcher[0][1]
+                parsed_m1 = matcher[0][2]
+                parsed_w  = matcher[0][3]
+            }
+        }        
+        indiv_fin_analysis_in = ch_file_preparation_results
+            .combine(ch_searchdb)
+            .combine(speclib)
+            .map { meta_map, ms_file, fasta, library ->
+                def new_meta = meta_map + [
+                    mass_acc_ms2 : parsed_m2,
+                    mass_acc_ms1 : parsed_m1,
+                    scan_window  : parsed_w
+                ]
+                return [ new_meta, ms_file, fasta, library ]
+            }
+        empirical_lib = speclib
     } else {
         //
         // MODULE: PRELIMINARY_ANALYSIS
@@ -102,9 +120,17 @@ workflow DIA {
             .mix(ASSEMBLE_EMPIRICAL_LIBRARY.out.versions)
         indiv_fin_analysis_in = ch_file_preparation_results
             .combine(ch_searchdb)
-            .combine(ASSEMBLE_EMPIRICAL_LIBRARY.out.log)
             .combine(ASSEMBLE_EMPIRICAL_LIBRARY.out.empirical_library)
-
+            .combine(ASSEMBLE_EMPIRICAL_LIBRARY.out.calibrated_params)
+            .map { meta_map, ms_file, fasta, library, param_file ->
+                def values = param_file.text.trim().split(',')
+                def new_meta = meta_map + [
+                    mass_acc_ms2 : values[0],
+                    mass_acc_ms1 : values[1],
+                    scan_window  : values[2]
+                ]
+                return [ new_meta, ms_file, fasta, library ]
+            }
         empirical_lib = ASSEMBLE_EMPIRICAL_LIBRARY.out.empirical_library
     }
 
