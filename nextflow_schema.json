@@ -62,12 +62,6 @@
             "description": "Settings for validating the input SDRF file.",
             "default": "",
             "properties": {
-                "skip_experimental_design_validation": {
-                    "type": "boolean",
-                    "description": "Skip validation of experimental design.",
-                    "fa_icon": "far fa-check-square",
-                    "help_text": "Skip validation of experimental design in the SDRF. Only useful if your experimental design is correct but the sdrf-validation library does not recognize it."
-                },
                 "use_ols_cache_only": {
                     "type": "boolean",
                     "description": "Use cached version of the Ontology Lookup Service (OLS).",
