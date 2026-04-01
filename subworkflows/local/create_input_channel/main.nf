@@ -12,11 +12,11 @@ workflow CREATE_INPUT_CHANNEL {
     main:
     ch_versions = channel.empty()
 
-    // Always parse as SDRF (OpenMS experimental design format deprecated)
+    // Always parse as SDRF using DIA-NN converter
     SDRF_PARSING(ch_sdrf)
     ch_versions = ch_versions.mix(SDRF_PARSING.out.versions)
-    ch_config = SDRF_PARSING.out.ch_sdrf_config_file
     ch_expdesign = SDRF_PARSING.out.ch_expdesign
+    ch_diann_cfg = SDRF_PARSING.out.ch_diann_cfg
 
     def Set enzymes = []
     def Set files = []
@@ -26,7 +26,7 @@ workflow CREATE_INPUT_CHANNEL {
         experiment_id: file(ch_sdrf.toString()).baseName,
     ]
 
-    ch_config
+    ch_expdesign
         .splitCsv(header: true, sep: '\t')
         .map { row -> create_meta_channel(row, enzymes, files, wrapper) }
         .set { ch_meta_config_dia }
@@ -34,6 +34,7 @@ workflow CREATE_INPUT_CHANNEL {
     emit:
     ch_meta_config_dia // [meta, spectra_file]
     ch_expdesign
+    ch_diann_cfg
     versions = ch_versions
 }
 
@@ -44,7 +45,7 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
 
     // Always use SDRF format
     if (!params.root_folder) {
-        filestr = row.URI.toString()
+        filestr = row.URI?.toString()?.trim() ? row.URI.toString() : row.Filename.toString()
     }
     else {
         filestr = row.Filename.toString()
@@ -67,30 +68,22 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
     }
 
     // Validate acquisition method is DIA
-    if (row["Proteomics Data Acquisition Method"].toString().toLowerCase().contains("data-independent acquisition")) {
+    // AcquisitionMethod is already extracted by convert-diann (e.g. "Data-Independent Acquisition")
+    def acqMethod = row.AcquisitionMethod?.toString()?.trim() ?: ""
+    if (acqMethod.toLowerCase().contains("data-independent acquisition") || acqMethod.toLowerCase().contains("dia")) {
+        meta.acquisition_method = "dia"
+    }
+    else if (acqMethod.isEmpty()) {
+        // If no acquisition method column in SDRF, assume DIA (this is a DIA-only pipeline)
         meta.acquisition_method = "dia"
     }
     else {
-        log.error("This pipeline only supports Data-Independent Acquisition (DIA). Found: '${row["Proteomics Data Acquisition Method"]}'. Use the quantms pipeline for DDA workflows.")
+        log.error("This pipeline only supports Data-Independent Acquisition (DIA). Found: '${acqMethod}'. Use the quantms pipeline for DDA workflows.")
         exit(1)
     }
 
-    // dissociation method conversion
-    if (row.DissociationMethod == "COLLISION-INDUCED DISSOCIATION") {
-        meta.dissociationmethod = "CID"
-    }
-    else if (row.DissociationMethod == "HIGHER ENERGY BEAM-TYPE COLLISION-INDUCED DISSOCIATION") {
-        meta.dissociationmethod = "HCD"
-    }
-    else if (row.DissociationMethod == "ELECTRON TRANSFER DISSOCIATION") {
-        meta.dissociationmethod = "ETD"
-    }
-    else if (row.DissociationMethod == "ELECTRON CAPTURE DISSOCIATION") {
-        meta.dissociationmethod = "ECD"
-    }
-    else {
-        meta.dissociationmethod = row.DissociationMethod
-    }
+    // DissociationMethod is already normalized by convert-diann (HCD, CID, ETD, ECD)
+    meta.dissociationmethod = row.DissociationMethod?.toString()?.trim() ?: ""
 
     wrapper.acquisition_method = meta.acquisition_method
 
@@ -131,6 +124,7 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
             exit(1)
         }
     } else {
+        log.warn("No precursor mass tolerance in SDRF for '${filestr}'. Using default: ${params.precursor_mass_tolerance} ${params.precursor_mass_tolerance_unit}")
         meta.precursormasstolerance = params.precursor_mass_tolerance
     }
 
@@ -154,6 +148,7 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
             exit(1)
         }
     } else {
+        log.warn("No fragment mass tolerance in SDRF for '${filestr}'. Using default: ${params.fragment_mass_tolerance} ${params.fragment_mass_tolerance_unit}")
         meta.fragmentmasstolerance = params.fragment_mass_tolerance
     }
 
@@ -174,6 +169,12 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
     } else {
         meta.variablemodifications = params.variable_mods
     }
+
+    // Per-file scan ranges (empty string = no flags passed, DIA-NN auto-detects)
+    meta.ms1minmz = row.MS1MinMz?.toString()?.trim() ?: ""
+    meta.ms1maxmz = row.MS1MaxMz?.toString()?.trim() ?: ""
+    meta.ms2minmz = row.MS2MinMz?.toString()?.trim() ?: ""
+    meta.ms2maxmz = row.MS2MaxMz?.toString()?.trim() ?: ""
 
     enzymes += row.Enzyme
     if (enzymes.size() > 1) {

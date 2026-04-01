@@ -30,7 +30,8 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
          '--temp', '--threads', '--verbose', '--lib', '--f', '--fasta',
          '--mass-acc', '--mass-acc-ms1', '--window',
          '--individual-mass-acc', '--individual-windows',
-         '--out-lib', '--use-quant', '--gen-spec-lib', '--rt-profiling']
+         '--out-lib', '--use-quant', '--gen-spec-lib', '--rt-profiling',
+         '--monitor-mod', '--var-mod', '--fixed-mod']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -60,8 +61,8 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
 
     ls -lcth
 
-    # Extract --var-mod and --fixed-mod flags from diann_config.cfg (DIA-NN best practice)
-    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+)' | tr '\\n' ' ')
+    # Extract --var-mod, --fixed-mod, and --monitor-mod flags from diann_config.cfg
+    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+|--monitor-mod\\s+\\S+)' | tr '\\n' ' ')
 
     diann   --f ${(ms_files as List).join(' --f ')} \\
             --lib ${lib} \\

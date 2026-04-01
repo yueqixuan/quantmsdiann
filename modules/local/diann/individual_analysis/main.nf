@@ -8,7 +8,7 @@ process INDIVIDUAL_ANALYSIS {
         'docker.io/biocontainers/diann:v1.8.1_cv1' }"
 
     input:
-    tuple val(meta), path(ms_file), path(fasta), path(diann_log), path(library)
+    tuple val(meta), path(ms_file), path(fasta), path(library)
     path(diann_config)
 
     output:
@@ -25,7 +25,9 @@ process INDIVIDUAL_ANALYSIS {
     def blocked = ['--use-quant', '--gen-spec-lib', '--out-lib', '--matrices', '--out', '--rt-profiling',
          '--temp', '--threads', '--verbose', '--lib', '--f', '--fasta',
          '--mass-acc', '--mass-acc-ms1', '--window',
-         '--no-ifs-removal', '--no-main-report', '--relaxed-prot-inf', '--pg-level']
+         '--no-ifs-removal', '--no-main-report', '--relaxed-prot-inf', '--pg-level',
+         '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
+         '--monitor-mod', '--var-mod', '--fixed-mod']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -42,28 +44,53 @@ process INDIVIDUAL_ANALYSIS {
         }
     }
 
-    scan_window = params.scan_window
-
-    if (params.mass_acc_automatic | params.scan_window_automatic) {
-        mass_acc_ms2 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 11 | tr -cd \"[0-9]\")"
-        scan_window = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 19 | tr -cd \"[0-9]\")"
-        mass_acc_ms1 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 15 | tr -cd \"[0-9]\")"
-    } else if (meta['precursormasstoleranceunit'].toLowerCase().endsWith('ppm') && meta['fragmentmasstoleranceunit'].toLowerCase().endsWith('ppm')) {
-        mass_acc_ms1 = meta["precursormasstolerance"]
-        mass_acc_ms2 = meta["fragmentmasstolerance"]
+    if (params.mass_acc_automatic || params.scan_window_automatic) {
+        if (meta.mass_acc_ms2 != "0" && meta.mass_acc_ms2 != null) {
+            mass_acc_ms2 = meta.mass_acc_ms2
+            mass_acc_ms1 = meta.mass_acc_ms1
+            scan_window  = meta.scan_window
+        }
+        else if (meta['precursormasstoleranceunit']?.toLowerCase()?.endsWith('ppm') && meta['fragmentmasstoleranceunit']?.toLowerCase()?.endsWith('ppm')) {
+            mass_acc_ms2 = meta['fragmentmasstolerance']
+            mass_acc_ms1 = meta['precursormasstolerance']
+            scan_window  = params.scan_window
+        }
+        else {
+            mass_acc_ms2 = params.mass_acc_ms2
+            mass_acc_ms1 = params.mass_acc_ms1
+            scan_window  = params.scan_window
+        }
     } else {
-        mass_acc_ms2 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 11 | tr -cd \"[0-9]\")"
-        scan_window = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 19 | tr -cd \"[0-9]\")"
-        mass_acc_ms1 = "\$(cat ${diann_log} | grep \"Averaged recommended settings\" | cut -d ' ' -f 15 | tr -cd \"[0-9]\")"
+        if (meta['precursormasstoleranceunit']?.toLowerCase()?.endsWith('ppm') && meta['fragmentmasstoleranceunit']?.toLowerCase()?.endsWith('ppm')) {
+            mass_acc_ms1 = meta["precursormasstolerance"]
+            mass_acc_ms2 = meta["fragmentmasstolerance"]
+            scan_window  = params.scan_window
+        }
+        else if (meta.mass_acc_ms2 != "0" && meta.mass_acc_ms2 != null) {
+            mass_acc_ms2 = meta.mass_acc_ms2
+            mass_acc_ms1 = meta.mass_acc_ms1
+            scan_window  = meta.scan_window
+        }
+        else {
+            mass_acc_ms2 = params.mass_acc_ms2
+            mass_acc_ms1 = params.mass_acc_ms1
+            scan_window  = params.scan_window
+        }
     }
 
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
     diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
 
+    // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
+    min_pr_mz = meta['ms1minmz'] ? "--min-pr-mz ${meta['ms1minmz']}" : ""
+    max_pr_mz = meta['ms1maxmz'] ? "--max-pr-mz ${meta['ms1maxmz']}" : ""
+    min_fr_mz = meta['ms2minmz'] ? "--min-fr-mz ${meta['ms2minmz']}" : ""
+    max_fr_mz = meta['ms2maxmz'] ? "--max-fr-mz ${meta['ms2maxmz']}" : ""
+
     """
-    # Extract --var-mod and --fixed-mod flags from diann_config.cfg (DIA-NN best practice)
-    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+)' | tr '\\n' ' ')
+    # Extract --var-mod, --fixed-mod, and --monitor-mod flags from diann_config.cfg
+    mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+|--monitor-mod\\s+\\S+)' | tr '\\n' ' ')
 
     diann   --lib ${library} \\
             --f ${ms_file} \\
@@ -78,6 +105,10 @@ process INDIVIDUAL_ANALYSIS {
             --no-main-report \\
             --relaxed-prot-inf \\
             --pg-level $params.pg_level \\
+            ${min_pr_mz} \\
+            ${max_pr_mz} \\
+            ${min_fr_mz} \\
+            ${max_fr_mz} \\
             ${diann_no_peptidoforms} \\
             ${diann_tims_sum} \\
             ${diann_im_window} \\
