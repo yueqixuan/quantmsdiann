@@ -18,17 +18,20 @@ workflow CREATE_INPUT_CHANNEL {
     ch_expdesign = SDRF_PARSING.out.ch_expdesign
     ch_diann_cfg = SDRF_PARSING.out.ch_diann_cfg
 
-    def Set enzymes = []
-    def Set files = []
+    def enzymes = new HashSet()
+    def files = new HashSet()
 
-    def wrapper = [
-        acquisition_method: "",
-        experiment_id: file(ch_sdrf.toString()).baseName,
-    ]
+    // Extract experiment_id from the SDRF filename via the value channel
+    ch_sdrf_val = ch_sdrf.first()
+    ch_experiment_id = ch_sdrf_val.map { sdrf_file -> file(sdrf_file).baseName }
 
-    ch_expdesign
+    ch_experiment_id
+        .combine(ch_expdesign)
         .splitCsv(header: true, sep: '\t')
-        .map { row -> create_meta_channel(row, enzymes, files, wrapper) }
+        .map { experiment_id, row ->
+            def wrapper = [acquisition_method: "", experiment_id: experiment_id]
+            create_meta_channel(row, enzymes, files, wrapper)
+        }
         .set { ch_meta_config_dia }
 
     emit:
@@ -51,7 +54,9 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
         filestr = row.Filename.toString()
     }
 
-    meta.mzml_id = file(filestr).name.take(file(filestr).name.lastIndexOf('.'))
+    def fileName = file(filestr).name
+    def dotIndex = fileName.lastIndexOf('.')
+    meta.mzml_id = dotIndex > 0 ? fileName.take(dotIndex) : fileName
     meta.experiment_id = wrapper.experiment_id
 
     // apply transformations given by specified root_folder and type

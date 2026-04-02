@@ -35,7 +35,7 @@ workflow DIA {
     main:
 
     ch_software_versions = channel.empty()
-    channel.fromPath(params.database).set { ch_searchdb }
+    ch_searchdb = Channel.fromPath(params.database, checkIfExists: true).first()
 
     ch_file_preparation_results.multiMap {
         result ->
@@ -43,7 +43,7 @@ workflow DIA {
         ms_file:result[1]
     }.set { ch_result }
 
-    meta = ch_result.meta.unique { m -> m.experiment_id }
+    ch_experiment_meta = ch_result.meta.unique { m -> m.experiment_id }.first()
 
     // diann_config.cfg comes directly from SDRF_PARSING (convert-diann)
     // Convert to value channel so it can be consumed by all per-file processes
@@ -72,7 +72,7 @@ workflow DIA {
             .combine(speclib)
             .combine(ch_parsed_vals)
             .map { meta_map, ms_file, fasta, library, param_string ->
-                def values = param_string.split(',')
+                def values = param_string.trim().split(',')
                 def new_meta = meta_map + [
                     mass_acc_ms2 : values[0],
                     mass_acc_ms1 : values[1],
@@ -109,7 +109,7 @@ workflow DIA {
         // Order matters in DIANN, This should be sorted for reproducible results.
         ASSEMBLE_EMPIRICAL_LIBRARY(
             empirical_lib_files,
-            meta,
+            ch_experiment_meta,
             PRELIMINARY_ANALYSIS.out.diann_quant.collect(),
             speclib,
             ch_diann_cfg_val
@@ -148,7 +148,7 @@ workflow DIA {
     // NOTE: ch_results.ms_file contains the name of the ms file, not the path.
     // The next step only needs the name (since it uses the cached .quant)
     // Converting to a file object and using its name is necessary because ch_result.ms_file contains
-    // locally, evey element in ch_result is a string, whilst on cloud it is a path.
+    // locally, every element in ch_result is a string, whilst on cloud it is a path.
     ch_result
         .ms_file.map { msfile -> file(msfile).getName() }
         .collect(sort: true)
@@ -156,7 +156,7 @@ workflow DIA {
 
     FINAL_QUANTIFICATION(
         ms_file_names,
-        meta,
+        ch_experiment_meta,
         empirical_lib,
         INDIVIDUAL_ANALYSIS.out.diann_quant.collect(),
         ch_searchdb,

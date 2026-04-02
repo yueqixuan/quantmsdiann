@@ -1,5 +1,5 @@
 process INSILICO_LIBRARY_GENERATION {
-    tag "$fasta.Name"
+    tag "$fasta.name"
     label 'process_medium'
     label 'diann'
 
@@ -47,7 +47,7 @@ process INSILICO_LIBRARY_GENERATION {
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
 
     """
-    diann `cat diann_config.cfg` \\
+    diann `cat ${diann_config}` \\
             --fasta ${fasta} \\
             --fasta-search \\
             ${min_pr_mz} \\

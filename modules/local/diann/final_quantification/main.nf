@@ -71,7 +71,7 @@ process FINAL_QUANTIFICATION {
 
     """
     # Notes: if .quant files are passed, mzml/.d files are not accessed, so the name needs to be passed but files
-    # do not need to pe present.
+    # do not need to be present.
 
     # Extract --var-mod, --fixed-mod, and --monitor-mod flags from diann_config.cfg
     mod_flags=\$(cat ${diann_config} | grep -oP '(--var-mod\\s+\\S+|--fixed-mod\\s+\\S+|--monitor-mod\\s+\\S+)' | tr '\\n' ' ')
