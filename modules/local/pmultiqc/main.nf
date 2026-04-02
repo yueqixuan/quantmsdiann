@@ -6,7 +6,7 @@ process PMULTIQC {
         'biocontainers/pmultiqc:0.0.43--pyhdfd78af_0' }"
 
     input:
-    path 'results/*'
+    path multiqc_inputs, stageAs: 'results/*'
     path quantms_log
 
     output:

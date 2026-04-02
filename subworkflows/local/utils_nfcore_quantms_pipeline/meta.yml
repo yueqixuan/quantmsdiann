@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/subworkflows/yaml-schema.json
-name: "pipeline_completion"
-description: Subworkflow for utils in the nf-core quantms pipeline
+name: "utils_nfcore_quantms_pipeline"
+description: Pipeline completion utilities for the nf-core quantmsdiann pipeline
 keywords:
   - utils
   - nf-core
