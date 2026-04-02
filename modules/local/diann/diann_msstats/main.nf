@@ -1,5 +1,5 @@
 process DIANN_MSSTATS {
-    tag "$meta.experiment_id"
+    tag "diann_msstats"
     label 'process_medium'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

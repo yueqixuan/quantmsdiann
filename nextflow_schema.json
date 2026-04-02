@@ -415,7 +415,7 @@
                     "type": "boolean",
                     "description": "Set '--use-quant' to reuse existing .quant files if available.",
                     "fa_icon": "far fa-check-square",
-                    "default": false
+                    "default": true
                 },
                 "skip_preliminary_analysis": {
                     "type": "boolean",

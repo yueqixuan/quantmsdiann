@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The pipeline is using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
 
-| Dependency            | Version    |
-| --------------------- | ---------- |
-| `thermorawfileparser` | 1.3.4      |
-| `sdrf-pipelines`      | 0.0.26     |
-| `pmultiqc`            | 0.0.24     |
-| `dia-nn`              | 1.8.1      |
-| `quantms-utils`       | 0.0.28     |
+| Dependency            | Version |
+| --------------------- | ------- |
+| `thermorawfileparser` | 1.3.4   |
+| `sdrf-pipelines`      | 0.0.26  |
+| `pmultiqc`            | 0.0.24  |
+| `dia-nn`              | 1.8.1   |
+| `quantms-utils`       | 0.0.28  |

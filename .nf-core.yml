@@ -14,6 +14,8 @@ lint:
   files_unchanged:
     - .github/PULL_REQUEST_TEMPLATE.md
     - .github/CONTRIBUTING.md
+    - .github/workflows/branch.yml
+    - .github/workflows/linting_comment.yml
     - docs/README.md
     - .gitignore
     - .github/workflows/awstest.yml
