@@ -223,7 +223,7 @@
         {
             "@id": "bin/",
             "@type": "Dataset",
-            "description": "Pipeline scripts for MSstats analysis"
+            "description": "Pipeline utility scripts"
         },
         {
             "@id": "conf/",

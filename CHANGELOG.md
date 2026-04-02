@@ -13,9 +13,6 @@ The pipeline is using Nextflow DSL2, each process will be run with its own [Bioc
 | --------------------- | ---------- |
 | `thermorawfileparser` | 1.3.4      |
 | `sdrf-pipelines`      | 0.0.26     |
-| `percolator`          | 3.5        |
 | `pmultiqc`            | 0.0.24     |
-| `luciphor`            | 2020_04_03 |
 | `dia-nn`              | 1.8.1      |
-| `msstats`             | 4.10.0     |
-| `msstatstmt`          | 2.10.0     |
+| `quantms-utils`       | 0.0.28     |
