@@ -51,7 +51,7 @@ outdir: "./results"
 Specify the pipeline version when running on your data:
 
 ```bash
-nextflow run bigbio/quantmsdiann -r 1.8.0 -profile docker --input sdrf.tsv --database db.fasta --outdir results
+nextflow run bigbio/quantmsdiann -r 1.0.0 -profile docker --input sdrf.tsv --database db.fasta --outdir results
 ```
 
 ## Core Nextflow arguments
