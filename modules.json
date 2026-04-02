@@ -7,7 +7,7 @@
                 "bigbio": {
                     "thermorawfileparser": {
                         "branch": "main",
-                        "git_sha": "a1a4a11ff508b2b5c23c9fb21c51c3327b748d4d",
+                        "git_sha": "daddf26d8c36e28dffe673949dc340ed6387de9a",
                         "installed_by": ["modules"]
                     }
                 }

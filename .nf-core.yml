@@ -1,7 +1,7 @@
 lint:
   files_exist:
-    - conf/tests/test_full.config
-    - conf/tests/test.config
+    - conf/test.config
+    - conf/test_full.config
     - .github/workflows/awstest.yml
     - .github/workflows/awsfulltest.yml
     - .github/workflows/ci.yml

@@ -78,14 +78,8 @@ workflow FILE_PREPARATION {
     }
 
     THERMORAWFILEPARSER( ch_branched_input.raw )
-    // Output is
-    // {'convert_files': Tuple[val(meta), path(mzml)],
-    //  'version': Path(versions.yml),
-    //  'log': Path(*.txt)}
-
-    // Where meta is the same as the input meta
-    ch_versions = ch_versions.mix(THERMORAWFILEPARSER.out.versions)
-    ch_results  = ch_results.mix(THERMORAWFILEPARSER.out.convert_files)
+    // Output: spectra (tuple val(meta), path(mzML/mgf/parquet)), log, versions via topic channel
+    ch_results  = ch_results.mix(THERMORAWFILEPARSER.out.spectra)
 
     ch_results.map{ it -> [it[0], it[1]] }.set{ indexed_mzml_bundle }
 
