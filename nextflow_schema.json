@@ -475,6 +475,24 @@
                     "fa_icon": "fas fa-flask",
                     "default": false
                 },
+                "diann_light_models": {
+                    "type": "boolean",
+                    "description": "Enable --light-models for 10x faster in-silico library generation (DIA-NN >= 2.0).",
+                    "fa_icon": "fas fa-bolt",
+                    "default": false
+                },
+                "diann_export_quant": {
+                    "type": "boolean",
+                    "description": "Enable --export-quant for fragment-level parquet data export (DIA-NN >= 2.0).",
+                    "fa_icon": "fas fa-file-export",
+                    "default": false
+                },
+                "diann_site_ms1_quant": {
+                    "type": "boolean",
+                    "description": "Enable --site-ms1-quant to use MS1 apex intensities for PTM site quantification (DIA-NN >= 2.0).",
+                    "fa_icon": "fas fa-crosshairs",
+                    "default": false
+                },
                 "save_speclib_tsv": {
                     "type": "boolean",
                     "default": false,

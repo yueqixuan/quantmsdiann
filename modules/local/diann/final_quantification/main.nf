@@ -48,7 +48,7 @@ process FINAL_QUANTIFICATION {
          '--use-quant', '--matrices', '--out', '--relaxed-prot-inf', '--pg-level',
          '--qvalue', '--window', '--individual-windows',
          '--species-genes', '--report-decoys', '--xic', '--no-norm',
-         '--monitor-mod', '--var-mod', '--fixed-mod', '--dda']
+         '--monitor-mod', '--var-mod', '--fixed-mod', '--dda', '--export-quant', '--site-ms1-quant']
     // Sort by length descending so longer flags (e.g. --individual-windows) are matched before shorter prefixes (--window)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -70,6 +70,8 @@ process FINAL_QUANTIFICATION {
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     diann_use_quant = params.diann_use_quant ? "--use-quant" : ""
     diann_dda_flag = params.diann_dda ? "--dda" : ""
+    diann_export_quant = params.diann_export_quant ? "--export-quant" : ""
+    diann_site_ms1_quant = params.diann_site_ms1_quant ? "--site-ms1-quant" : ""
 
     """
     # Notes: if .quant files are passed, mzml/.d files are not accessed, so the name needs to be passed but files
@@ -100,6 +102,8 @@ process FINAL_QUANTIFICATION {
             ${diann_no_peptidoforms} \\
             ${diann_use_quant} \\
             ${diann_dda_flag} \\
+            ${diann_export_quant} \\
+            ${diann_site_ms1_quant} \\
             \${mod_flags} \\
             $args
 
