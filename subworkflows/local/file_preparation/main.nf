@@ -102,9 +102,9 @@ workflow FILE_PREPARATION {
     ch_results = ch_results.mix(ch_branched_input.dia)
 
     if (params.mzml_statistics) {
-        // Only run on mzML files, skip .d and .dia
+        // Only run on mzML files — exclude .d, .dia, .mgf, .parquet, etc.
         ch_mzml_for_stats = ch_results.filter { _meta, file ->
-            !hasExtension(file, '.d') && !hasExtension(file, '.dia')
+            hasExtension(file, '.mzML')
         }
         MZML_STATISTICS(ch_mzml_for_stats)
         ch_statistics = ch_statistics.mix(MZML_STATISTICS.out.ms_statistics.collect())
