@@ -27,7 +27,7 @@ process PRELIMINARY_ANALYSIS {
          '--mass-acc', '--mass-acc-ms1', '--window',
          '--quick-mass-acc', '--min-corr', '--corr-diff', '--time-corr-only',
          '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
-         '--monitor-mod', '--var-mod', '--fixed-mod']
+         '--monitor-mod', '--var-mod', '--fixed-mod', '--no-prot-inf']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -100,6 +100,7 @@ process PRELIMINARY_ANALYSIS {
             ${diann_no_peptidoforms} \\
             ${diann_tims_sum} \\
             ${diann_im_window} \\
+            --no-prot-inf \\
             \${mod_flags} \\
             $args
 
