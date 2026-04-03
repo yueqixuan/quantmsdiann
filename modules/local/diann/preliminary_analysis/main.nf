@@ -54,6 +54,13 @@ process PRELIMINARY_ANALYSIS {
         mass_acc = ""
     }
 
+    // Warn about auto-calibration with Bruker/timsTOF data
+    if (params.mass_acc_automatic && ms_file.name.toString().toLowerCase().endsWith('.d')) {
+        log.warn "Bruker/timsTOF .d file detected (${ms_file.name}) with automatic mass accuracy calibration enabled. " +
+            "DIA-NN recommends manually fixing MS1 and MS2 mass accuracy to 10-15 ppm for timsTOF datasets. " +
+            "Consider using: --mass_acc_automatic false --mass_acc_ms1 10 --mass_acc_ms2 10"
+    }
+
     // Notes: Use double quotes for params, so that it is escaped in the shell.
     scan_window = params.scan_window_automatic ? '' : "--window $params.scan_window"
     diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
