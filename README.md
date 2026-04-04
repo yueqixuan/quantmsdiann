@@ -34,6 +34,16 @@ The pipeline takes [SDRF](https://github.com/bigbio/proteomics-metadata-standard
 8. **MSstats conversion** — DIA-NN report to MSstats-compatible format
 9. **Quality control** — interactive QC report via [pmultiqc](https://github.com/bigbio/pmultiqc)
 
+## Supported DIA-NN Versions
+
+| Version         | Profile        | Container                                  | Output format |
+| --------------- | -------------- | ------------------------------------------ | ------------- |
+| 1.8.1 (default) | `diann_v1_8_1` | `docker.io/biocontainers/diann:v1.8.1_cv1` | TSV           |
+| 2.1.0           | `diann_v2_1_0` | `ghcr.io/bigbio/diann:2.1.0`               | Parquet       |
+| 2.2.0           | `diann_v2_2_0` | `ghcr.io/bigbio/diann:2.2.0`               | Parquet       |
+
+Switch versions with `-profile diann_v2_1_0,docker`. See the [DIA-NN Version Selection](docs/usage.md#dia-nn-version-selection) section for details.
+
 ## Quick start
 
 > [!NOTE]
@@ -53,6 +63,7 @@ nextflow run bigbio/quantmsdiann \
 ## Documentation
 
 - [Usage](docs/usage.md) — How to run the pipeline, input formats, optional outputs, and custom configuration
+- [Parameters](docs/parameters.md) — Complete reference of all pipeline parameters organised by category
 - [Output](docs/output.md) — Description of all output files produced by the pipeline
 
 ## Credits
