@@ -8,7 +8,7 @@ tools:
       description: |
         A custom module for mzML file statistics.
       homepage: https://github.com/bigbio/quantms
-      documentation: https://github.com/bigbio/quantms/tree/readthedocs
+      documentation: https://github.com/bigbio/quantmsdiann
 input:
   - mzml:
       type: file
