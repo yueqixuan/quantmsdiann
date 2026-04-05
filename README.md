@@ -12,7 +12,7 @@
 
 ## Introduction
 
-**quantmsdiann** is a [bigbio](https://github.com/bigbio) bioinformatics pipeline, built following [nf-core](https://nf-co.re/) guidelines, for **Data-Independent Acquisition (DIA)** quantitative mass spectrometry analysis using [DIA-NN](https://github.com/vdemichev/DiaNN).
+**quantmsdiann** is a [bigbio](https://github.com/bigbio) bioinformatics pipeline, built following [nf-core](https://nf-co.re/) guidelines, for quantitative mass spectrometry analysis using [DIA-NN](https://github.com/vdemichev/DiaNN). It supports **Data-Independent Acquisition (DIA)** workflows including label-free, plexDIA (mTRAQ, SILAC, Dimethyl), phosphoproteomics with site localization, and Bruker timsTOF/PASEF data.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a portable manner. It uses Docker/Singularity containers making results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process, making it easy to maintain and update software dependencies.
 
@@ -24,30 +24,39 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 The pipeline takes [SDRF](https://github.com/bigbio/proteomics-metadata-standard) metadata and mass spectrometry data files (`.raw`, `.mzML`, `.d`, `.dia`) as input and performs:
 
-1. **Input validation** — SDRF parsing and validation
-2. **File preparation** — RAW to mzML conversion (ThermoRawFileParser), indexing, Bruker `.d` handling
-3. **In-silico spectral library generation** — or use a user-provided library (`--diann_speclib`)
-4. **Preliminary analysis** — per-file calibration and mass accuracy estimation
-5. **Empirical library assembly** — consensus library from preliminary results
-6. **Individual analysis** — per-file search with the empirical library
-7. **Final quantification** — protein/peptide/gene group matrices
-8. **MSstats conversion** — DIA-NN report to MSstats-compatible format
+1. **Input validation** — SDRF parsing and validation via [sdrf-pipelines](https://github.com/bigbio/sdrf-pipelines)
+2. **File preparation** — RAW to mzML conversion ([ThermoRawFileParser](https://github.com/compomics/ThermoRawFileParser)), indexing, Bruker `.d` handling ([tdf2mzml](https://github.com/bigbio/tdf2mzml))
+3. **In-silico spectral library generation** — deep learning-based prediction, or use a user-provided library (`--diann_speclib`)
+4. **Preliminary analysis** — per-file calibration and mass accuracy estimation (parallelized)
+5. **Empirical library assembly** — consensus library from preliminary results with RT profiling
+6. **Individual analysis** — per-file search with the empirical library (parallelized)
+7. **Final quantification** — protein/peptide/gene group matrices with cross-run normalization
+8. **MSstats conversion** — DIA-NN report to [MSstats](https://msstats.org/)-compatible format
 9. **Quality control** — interactive QC report via [pmultiqc](https://github.com/bigbio/pmultiqc)
 
 ## Supported DIA-NN Versions
 
-| Version         | Profile        | Container                                  | Output format |
-| --------------- | -------------- | ------------------------------------------ | ------------- |
-| 1.8.1 (default) | `diann_v1_8_1` | `docker.io/biocontainers/diann:v1.8.1_cv1` | TSV           |
-| 2.1.0           | `diann_v2_1_0` | `ghcr.io/bigbio/diann:2.1.0`               | Parquet       |
-| 2.2.0           | `diann_v2_2_0` | `ghcr.io/bigbio/diann:2.2.0`               | Parquet       |
+| Version         | Profile        | Container                                  | Key features                                   |
+| --------------- | -------------- | ------------------------------------------ | ---------------------------------------------- |
+| 1.8.1 (default) | `diann_v1_8_1` | `docker.io/biocontainers/diann:v1.8.1_cv1` | Core DIA analysis, TSV output                  |
+| 2.1.0           | `diann_v2_1_0` | `ghcr.io/bigbio/diann:2.1.0`               | Native .raw support, Parquet output            |
+| 2.2.0           | `diann_v2_2_0` | `ghcr.io/bigbio/diann:2.2.0`               | Speed optimizations (up to 1.6x on HPC)        |
+| 2.3.2           | `diann_v2_3_2` | `ghcr.io/bigbio/diann:2.3.2`               | DDA support (beta), InfinDIA, up to 9 var mods |
 
-Switch versions with `-profile diann_v2_1_0,docker`. See the [DIA-NN Version Selection](docs/usage.md#dia-nn-version-selection) section for details.
+Switch versions with e.g. `-profile diann_v2_2_0,docker`. See the [DIA-NN Version Selection](docs/usage.md#dia-nn-version-selection) guide and [full parameter reference](docs/parameters.md) for details.
 
 ## Quick start
 
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set up Nextflow.
+
+**Run with test data:**
+
+```bash
+nextflow run bigbio/quantmsdiann -profile test_dia,docker --outdir results
+```
+
+**Run with your own data:**
 
 ```bash
 nextflow run bigbio/quantmsdiann \
@@ -55,6 +64,16 @@ nextflow run bigbio/quantmsdiann \
     --database 'proteins.fasta' \
     --outdir './results' \
     -profile docker
+```
+
+**Run with a specific DIA-NN version:**
+
+```bash
+nextflow run bigbio/quantmsdiann \
+    --input 'experiment.sdrf.tsv' \
+    --database 'proteins.fasta' \
+    --outdir './results' \
+    -profile docker,diann_v2_2_0
 ```
 
 > [!WARNING]
