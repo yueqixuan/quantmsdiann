@@ -114,7 +114,6 @@ workflow QUANTMSDIANN {
     ch_multiqc_files = ch_multiqc_files.mix(DIA.out.diann_log)
     ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
-    ch_multiqc_quantms_logo = file("${projectDir}/assets/nf-core-quantmsdiann_logo_light.png")
 
     // create cross product of all inputs
     multiqc_inputs = CREATE_INPUT_CHANNEL.out.ch_expdesign
@@ -125,10 +124,7 @@ workflow QUANTMSDIANN {
         .mix(ch_msstats_in.ifEmpty([]))
         .collect()
 
-    SUMMARY_PIPELINE(
-        multiqc_inputs,
-        ch_multiqc_quantms_logo,
-    )
+    SUMMARY_PIPELINE(multiqc_inputs)
 
     emit:
     multiqc_report = SUMMARY_PIPELINE.out.ch_pmultiqc_report.toList()
