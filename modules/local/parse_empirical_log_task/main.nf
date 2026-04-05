@@ -1,5 +1,6 @@
 process PARSE_EMPIRICAL_LOG_TASK {
-    label 'process_single'
+    label 'process_tiny'
+    executor 'local'
 
     input:
     path log_file
