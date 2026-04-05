@@ -24,7 +24,7 @@ The pipeline supports the following mass spectrometry data file formats:
 
 - **`.raw`** - Thermo RAW files (automatically converted to mzML)
 - **`.mzML`** - Open standard mzML files
-- **`.d`** - Bruker timsTOF files (optionally converted to mzML when `--convert_dotd` is set)
+- **`.d`** - Bruker timsTOF files (processed natively by DIA-NN)
 - **`.dia`** - DIA-NN native binary format (passed through without conversion)
 
 Compressed variants are supported for `.raw`, `.mzML`, and `.d` formats: `.gz`, `.tar`, `.tar.gz`, `.zip`.
@@ -38,8 +38,6 @@ The pipeline includes several preprocessing steps that can be controlled via par
 - **`--mzml_statistics`** (default: `false`) -- Compute MS1/MS2 statistics from mzML files. When enabled, `*_ms_info.parquet` files are generated for each mzML file and used in QC reporting. Bruker `.d` files are always skipped by this step.
 
 - **`--mzml_features`** (default: `false`) -- Compute MS1-level features during the mzML statistics step. Only available for mzML files.
-
-- **`--convert_dotd`** (default: `false`) -- Convert Bruker `.d` files to mzML before analysis. When `false`, DIA-NN processes `.d` files natively. Set to `true` if you need mzML intermediates or want to run mzML statistics on Bruker data.
 
 ### Bruker/timsTOF Data
 
