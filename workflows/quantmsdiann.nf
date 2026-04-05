@@ -31,7 +31,6 @@ workflow QUANTMSDIANN {
 
     main:
 
-    // TODO check what the standard is here: ch_versions or ch_software_versions
     ch_versions = channel.empty()
 
     //
@@ -41,9 +40,6 @@ workflow QUANTMSDIANN {
         file(params.input)
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
-    // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with channel.fromSamplesheet("input")
-    // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
-    // ! There is currently no tooling to help you write a sample sheet schema
 
     //
     // SUBWORKFLOW: Create input channel

@@ -46,8 +46,8 @@ workflow DIA {
     ch_experiment_meta = ch_result.meta.unique { m -> m.experiment_id }.first()
 
     // diann_config.cfg comes directly from SDRF_PARSING (convert-diann)
-    // Convert to value channel so it can be consumed by all per-file processes
-    ch_diann_cfg_val = ch_diann_cfg.first()
+    // Use as value channel so it can be consumed by all per-file processes
+    ch_diann_cfg_val = ch_diann_cfg
 
     //
     // MODULE: SILICOLIBRARYGENERATION
