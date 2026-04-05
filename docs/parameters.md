@@ -92,12 +92,12 @@ This document lists every pipeline parameter organised by category. Default valu
 
 ## 10. Preliminary Analysis
 
-| Parameter                     | Type    | Default | Description                                                                                                                        |
-| ----------------------------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `--skip_preliminary_analysis` | boolean | `false` | Skip preliminary analysis. Use the provided spectral library as-is instead of generating a local consensus library.                |
-| `--random_preanalysis`        | boolean | `false` | Enable random selection of spectrum files for empirical library generation.                                                        |
-| `--random_preanalysis_seed`   | integer | `42`    | Random seed for file selection when `--random_preanalysis` is enabled.                                                             |
-| `--empirical_assembly_ms_n`   | integer | `200`   | Number of randomly selected spectrum files when `--random_preanalysis` is enabled.                                                 |
+| Parameter                     | Type    | Default | Description                                                                                                         |
+| ----------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--skip_preliminary_analysis` | boolean | `false` | Skip preliminary analysis. Use the provided spectral library as-is instead of generating a local consensus library. |
+| `--random_preanalysis`        | boolean | `false` | Enable random selection of spectrum files for empirical library generation.                                         |
+| `--random_preanalysis_seed`   | integer | `42`    | Random seed for file selection when `--random_preanalysis` is enabled.                                              |
+| `--empirical_assembly_ms_n`   | integer | `200`   | Number of randomly selected spectrum files when `--random_preanalysis` is enabled.                                  |
 
 ## 11. Quantification & Output
 
