@@ -16,9 +16,6 @@ input:
       description: |
         Collection of files staged under results/ for MultiQC
         (e.g. experimental design, pipeline outputs, version files, config)
-  - quantms_log:
-      type: file
-      description: Pipeline logo or log file staged alongside results
 output:
   - report:
       type: file

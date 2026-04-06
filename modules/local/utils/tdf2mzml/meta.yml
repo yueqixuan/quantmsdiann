@@ -18,7 +18,7 @@ input:
   - rawfile:
       type: file
       description: |
-        Bruker Raw file archived using tar
+        Bruker .d raw directory
       pattern: "*.d"
 output:
   - meta:
