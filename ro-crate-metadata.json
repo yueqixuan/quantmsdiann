@@ -156,7 +156,7 @@
                 }
             ],
             "name": [
-                "bigbio/quantms"
+                "bigbio/quantmsdiann"
             ],
             "programmingLanguage": {
                 "@id": "https://w3id.org/workflowhub/workflow-ro-crate#nextflow"
@@ -165,8 +165,8 @@
                 "@id": "https://nf-co.re/"
             },
             "url": [
-                "https://github.com/bigbio/quantms",
-                "https://nf-co.re/bigbio/quantms/dev/"
+                "https://github.com/bigbio/quantmsdiann",
+                "https://nf-co.re/bigbio/quantmsdiann/dev/"
             ],
             "version": [
                 "1.0.0"
@@ -201,7 +201,7 @@
             "@id": "#3117cd02-e7cf-46fa-b9ff-69f935d897c9",
             "@type": "TestInstance",
             "name": "GitHub Actions workflow for testing bigbio/quantmsdiann",
-            "resource": "repos/bigbio/quantms/actions/workflows/nf-test.yml",
+            "resource": "repos/bigbio/quantmsdiann/actions/workflows/nf-test.yml",
             "runsOn": {
                 "@id": "https://w3id.org/ro/terms/test#GithubService"
             },

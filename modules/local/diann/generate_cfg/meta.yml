@@ -7,7 +7,7 @@ tools:
   - custom:
       description: |
         A custom module to generate DIA-NN configuration files from input files and params.
-      homepage: https://github.com/bigbio/quantms
+      homepage: https://github.com/bigbio/quantmsdiann
       documentation: https://github.com/bigbio/quantmsdiann
 input:
   - meta:

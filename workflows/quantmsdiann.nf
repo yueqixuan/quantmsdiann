@@ -86,7 +86,7 @@ workflow QUANTMSDIANN {
     softwareVersionsToYAML(ch_versions)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
-            name: 'nf_core_' + 'quantms_software_' + 'mqc_' + 'versions.yml',
+            name: 'nf_core_' + 'quantmsdiann_software_' + 'mqc_' + 'versions.yml',
             sort: true,
             newLine: true,
         )
