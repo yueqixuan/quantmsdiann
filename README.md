@@ -2,7 +2,7 @@
 
 [![GitHub Actions CI Status](https://github.com/bigbio/quantmsdiann/actions/workflows/ci.yml/badge.svg)](https://github.com/bigbio/quantmsdiann/actions/workflows/ci.yml)
 [![GitHub Actions Linting Status](https://github.com/bigbio/quantmsdiann/actions/workflows/linting.yml/badge.svg)](https://github.com/bigbio/quantmsdiann/actions/workflows/linting.yml)
-[![Cite with Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.15573386.svg)](https://doi.org/10.5281/zenodo.15573386)
+[![Cite with Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.19437128.svg)](https://doi.org/10.5281/zenodo.19437128)
 [![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)
 
 [![Nextflow](https://img.shields.io/badge/version-%E2%89%A525.04.0-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
@@ -103,7 +103,7 @@ If you would like to contribute to this pipeline, please see the [contributing g
 
 If you use quantmsdiann in your research, please cite:
 
-> Dai et al. "quantms: a cloud-based pipeline for quantitative proteomics" (2024). DOI: [10.5281/zenodo.15573386](https://doi.org/10.5281/zenodo.15573386)
+> Dai et al. "quantms: a cloud-based pipeline for quantitative proteomics" (2024). DOI: [10.5281/zenodo.19437128](https://doi.org/10.5281/zenodo.19437128)
 
 An extensive list of references for the tools used by the pipeline can be found in the [CITATIONS.md](CITATIONS.md) file.
 
