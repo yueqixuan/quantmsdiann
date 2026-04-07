@@ -11,6 +11,7 @@ process INSILICO_LIBRARY_GENERATION {
     input:
     path(fasta)
     path(diann_config)
+    val(is_dda)
 
     output:
     path "versions.yml", emit: versions
@@ -47,7 +48,7 @@ process INSILICO_LIBRARY_GENERATION {
     max_fr_mz = params.max_fr_mz ? "--max-fr-mz $params.max_fr_mz":""
     met_excision = params.met_excision ? "--met-excision" : ""
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
-    diann_dda_flag = params.diann_dda ? "--dda" : ""
+    diann_dda_flag = is_dda ? "--dda" : ""
     diann_light_models = params.diann_light_models ? "--light-models" : ""
     infin_dia_flag = params.enable_infin_dia ? "--infin-dia" : ""
     pre_select_flag = params.diann_pre_select ? "--pre-select $params.diann_pre_select" : ""

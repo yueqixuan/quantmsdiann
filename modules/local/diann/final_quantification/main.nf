@@ -72,7 +72,7 @@ process FINAL_QUANTIFICATION {
     quantums_params = params.quantums_params ? "--quant-params $params.quantums_params": ""
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     diann_use_quant = params.diann_use_quant ? "--use-quant" : ""
-    diann_dda_flag = params.diann_dda ? "--dda" : ""
+    diann_dda_flag = meta.acquisition_method == 'dda' ? "--dda" : ""
     diann_export_quant = params.diann_export_quant ? "--export-quant" : ""
     diann_site_ms1_quant = params.diann_site_ms1_quant ? "--site-ms1-quant" : ""
 

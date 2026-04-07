@@ -68,7 +68,7 @@ process PRELIMINARY_ANALYSIS {
     scan_window = params.scan_window_automatic ? '' : "--window $params.scan_window"
     diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
     diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
-    diann_dda_flag = params.diann_dda ? "--dda" : ""
+    diann_dda_flag = meta.acquisition_method == 'dda' ? "--dda" : ""
 
     // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
     min_pr_mz = meta['ms1minmz'] ? "--min-pr-mz ${meta['ms1minmz']}" : ""

@@ -66,7 +66,16 @@ For Synchro-PASEF data, enable `--diann_tims_sum` (which adds `--quant-tims-sum`
 
 ### DDA Analysis Mode (Beta)
 
-DIA-NN 2.3.2+ supports DDA data analysis via the `--dda` flag. Enable it with:
+DIA-NN 2.3.2+ supports DDA data analysis via the `--dda` flag. The pipeline **auto-detects DDA mode** from the SDRF `comment[proteomics data acquisition method]` column — no extra flags needed if your SDRF contains `data-dependent acquisition`:
+
+```bash
+nextflow run bigbio/quantmsdiann \
+  --input dda_sdrf.tsv \
+  --database proteins.fasta \
+  -profile diann_v2_3_2,docker
+```
+
+If your SDRF does not include the acquisition method column, you can explicitly enable DDA mode with `--diann_dda true`:
 
 ```bash
 nextflow run bigbio/quantmsdiann \
@@ -84,7 +93,7 @@ nextflow run bigbio/quantmsdiann \
 - No isobaric labeling or reporter-tag quantification
 - Primary use cases: legacy DDA reanalysis, spectral library creation, immunopeptidomics
 
-The pipeline uses the same workflow for DDA as DIA — the `--dda` flag is passed to all DIA-NN steps automatically.
+The pipeline uses the same workflow for DDA as DIA — the `--dda` flag is passed to all DIA-NN steps automatically when DDA is detected from the SDRF or enabled via `--diann_dda`.
 
 ### Preprocessing Options
 

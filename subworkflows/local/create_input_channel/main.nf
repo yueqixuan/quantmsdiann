@@ -72,16 +72,16 @@ def create_meta_channel(LinkedHashMap row, enzymes, files, wrapper) {
         exit(1, "ERROR: Please check input file -> File Uri does not exist!\n${filestr}")
     }
 
-    // Validate acquisition method
+    // Detect acquisition method from SDRF or fallback to --diann_dda param
     def acqMethod = row.AcquisitionMethod?.toString()?.trim() ?: ""
     if (acqMethod.toLowerCase().contains("data-independent acquisition") || acqMethod.toLowerCase().contains("dia")) {
         meta.acquisition_method = "dia"
-    } else if (params.diann_dda && (acqMethod.toLowerCase().contains("data-dependent acquisition") || acqMethod.toLowerCase().contains("dda"))) {
+    } else if (acqMethod.toLowerCase().contains("data-dependent acquisition") || acqMethod.toLowerCase().contains("dda")) {
         meta.acquisition_method = "dda"
     } else if (acqMethod.isEmpty()) {
         meta.acquisition_method = params.diann_dda ? "dda" : "dia"
     } else {
-        log.error("Unsupported acquisition method: '${acqMethod}'. This pipeline supports DIA" + (params.diann_dda ? " and DDA (--diann_dda)" : "") + ". Found in file: ${filestr}")
+        log.error("Unsupported acquisition method: '${acqMethod}'. This pipeline supports DIA and DDA. Found in file: ${filestr}")
         exit(1)
     }
 

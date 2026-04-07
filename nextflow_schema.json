@@ -458,7 +458,7 @@
                 },
                 "diann_dda": {
                     "type": "boolean",
-                    "description": "Enable DDA (Data-Dependent Acquisition) analysis mode. Passes --dda to all DIA-NN steps. Requires DIA-NN >= 2.3.2 (use -profile diann_v2_3_2). Beta feature.",
+                    "description": "Explicitly enable DDA mode. Normally auto-detected from the SDRF acquisition method column. Use only when SDRF lacks this column. Requires DIA-NN >= 2.3.2.",
                     "fa_icon": "fas fa-flask",
                     "default": false
                 },

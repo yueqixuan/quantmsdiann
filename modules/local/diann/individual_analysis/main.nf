@@ -83,7 +83,7 @@ process INDIVIDUAL_ANALYSIS {
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
     diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
-    diann_dda_flag = params.diann_dda ? "--dda" : ""
+    diann_dda_flag = meta.acquisition_method == 'dda' ? "--dda" : ""
 
     // Flags removed in DIA-NN 2.3.x — only pass for older versions
     no_ifs_removal = VersionUtils.versionLessThan(params.diann_version, '2.3') ? "--no-ifs-removal" : ""

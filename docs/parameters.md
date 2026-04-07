@@ -52,16 +52,16 @@ This document lists every pipeline parameter organised by category. Default valu
 
 ## 5. DIA-NN General
 
-| Parameter                | Type    | Default | Description                                                                                                                                                                                                  |
-| ------------------------ | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--diann_version`        | string  | `1.8.1` | DIA-NN version used by the workflow. Controls version-dependent flags (e.g. `--monitor-mod` for 1.8.x). See [DIA-NN Version Selection](usage.md#dia-nn-version-selection).                                   |
-| `--diann_debug`          | integer | `3`     | DIA-NN debug/verbosity level (0-4). Higher values produce more verbose logs.                                                                                                                                 |
-| `--diann_speclib`        | string  | `null`  | Path to an external spectral library. If provided, the in-silico library generation step is skipped.                                                                                                         |
-| `--diann_extra_args`     | string  | `null`  | Extra arguments appended to all DIA-NN steps. Flags incompatible with a step are automatically stripped with a warning. See [Passing Extra Arguments to DIA-NN](usage.md#passing-extra-arguments-to-dia-nn). |
-| `--diann_dda`            | boolean | `false` | Enable DDA (Data-Dependent Acquisition) analysis mode. Passes `--dda` to all DIA-NN steps. Requires DIA-NN >= 2.3.2. Beta feature.                                                                           |
-| `--diann_light_models`   | boolean | `false` | Enable `--light-models` for 10x faster in-silico library generation. Requires DIA-NN >= 2.0.                                                                                                                 |
-| `--diann_export_quant`   | boolean | `false` | Enable `--export-quant` for fragment-level parquet data export. Requires DIA-NN >= 2.0.                                                                                                                      |
-| `--diann_site_ms1_quant` | boolean | `false` | Enable `--site-ms1-quant` to use MS1 apex intensities for PTM site quantification. Requires DIA-NN >= 2.0.                                                                                                   |
+| Parameter                | Type    | Default | Description                                                                                                                                                                                                     |
+| ------------------------ | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--diann_version`        | string  | `1.8.1` | DIA-NN version used by the workflow. Controls version-dependent flags (e.g. `--monitor-mod` for 1.8.x). See [DIA-NN Version Selection](usage.md#dia-nn-version-selection).                                      |
+| `--diann_debug`          | integer | `3`     | DIA-NN debug/verbosity level (0-4). Higher values produce more verbose logs.                                                                                                                                    |
+| `--diann_speclib`        | string  | `null`  | Path to an external spectral library. If provided, the in-silico library generation step is skipped.                                                                                                            |
+| `--diann_extra_args`     | string  | `null`  | Extra arguments appended to all DIA-NN steps. Flags incompatible with a step are automatically stripped with a warning. See [Passing Extra Arguments to DIA-NN](usage.md#passing-extra-arguments-to-dia-nn).    |
+| `--diann_dda`            | boolean | `false` | Explicitly enable DDA mode. Normally auto-detected from the SDRF `comment[proteomics data acquisition method]` column. Use this flag only when the SDRF lacks the acquisition method. Requires DIA-NN >= 2.3.2. |
+| `--diann_light_models`   | boolean | `false` | Enable `--light-models` for 10x faster in-silico library generation. Requires DIA-NN >= 2.0.                                                                                                                    |
+| `--diann_export_quant`   | boolean | `false` | Enable `--export-quant` for fragment-level parquet data export. Requires DIA-NN >= 2.0.                                                                                                                         |
+| `--diann_site_ms1_quant` | boolean | `false` | Enable `--site-ms1-quant` to use MS1 apex intensities for PTM site quantification. Requires DIA-NN >= 2.0.                                                                                                      |
 
 ## 6. Mass Accuracy & Calibration
 
@@ -123,13 +123,14 @@ This document lists every pipeline parameter organised by category. Default valu
 
 ## 12. DDA Mode
 
-| Parameter     | Type    | Default | Description                                                                                                                                                                                                   |
-| ------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--diann_dda` | boolean | `false` | Enable DDA analysis mode. Passes `--dda` to all DIA-NN steps. Requires DIA-NN >= 2.3.2 (use `-profile diann_v2_3_2`). This is a beta feature with known limitations; see the usage documentation for details. |
+| Parameter     | Type    | Default | Description                                                                                                                                                                                                                                |
+| ------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--diann_dda` | boolean | `false` | Explicitly enable DDA mode when SDRF lacks the acquisition method column. Normally DDA is auto-detected from the SDRF `comment[proteomics data acquisition method]`. Requires DIA-NN >= 2.3.2 (use `-profile diann_v2_3_2`). Beta feature. |
 
-> **Note:** DDA support requires DIA-NN >= 2.3.2. Enable this profile with
-> `-profile diann_v2_3_2`. The DDA mode is experimental and may not support
-> all pipeline features available in DIA mode.
+> **Note:** DDA mode is auto-detected from the SDRF when the `comment[proteomics data acquisition method]`
+> column contains `data-dependent acquisition`. The `--diann_dda` flag is only needed as a
+> fallback when the SDRF does not include this column. DDA requires DIA-NN >= 2.3.2
+> (`-profile diann_v2_3_2`).
 
 ## 13. InfinDIA (Experimental)
 
