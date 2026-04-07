@@ -58,10 +58,10 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--diann_debug`          | integer | `3`     | DIA-NN debug/verbosity level (0-4). Higher values produce more verbose logs.                                                                                                                                 |
 | `--diann_speclib`        | string  | `null`  | Path to an external spectral library. If provided, the in-silico library generation step is skipped.                                                                                                         |
 | `--diann_extra_args`     | string  | `null`  | Extra arguments appended to all DIA-NN steps. Flags incompatible with a step are automatically stripped with a warning. See [Passing Extra Arguments to DIA-NN](usage.md#passing-extra-arguments-to-dia-nn). |
-| `--diann_dda`            | boolean | `false` | Enable DDA (Data-Dependent Acquisition) analysis mode. Passes `--dda` to all DIA-NN steps. Requires DIA-NN >= 2.3.2. Beta feature.                                                                          |
-| `--diann_light_models`   | boolean | `false` | Enable `--light-models` for 10x faster in-silico library generation. Requires DIA-NN >= 2.0.                                                                                                                |
-| `--diann_export_quant`   | boolean | `false` | Enable `--export-quant` for fragment-level parquet data export. Requires DIA-NN >= 2.0.                                                                                                                     |
-| `--diann_site_ms1_quant` | boolean | `false` | Enable `--site-ms1-quant` to use MS1 apex intensities for PTM site quantification. Requires DIA-NN >= 2.0.                                                                                                  |
+| `--diann_dda`            | boolean | `false` | Enable DDA (Data-Dependent Acquisition) analysis mode. Passes `--dda` to all DIA-NN steps. Requires DIA-NN >= 2.3.2. Beta feature.                                                                           |
+| `--diann_light_models`   | boolean | `false` | Enable `--light-models` for 10x faster in-silico library generation. Requires DIA-NN >= 2.0.                                                                                                                 |
+| `--diann_export_quant`   | boolean | `false` | Enable `--export-quant` for fragment-level parquet data export. Requires DIA-NN >= 2.0.                                                                                                                      |
+| `--diann_site_ms1_quant` | boolean | `false` | Enable `--site-ms1-quant` to use MS1 apex intensities for PTM site quantification. Requires DIA-NN >= 2.0.                                                                                                   |
 
 ## 6. Mass Accuracy & Calibration
 
@@ -102,8 +102,8 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--skip_preliminary_analysis` | boolean | `false` | Skip preliminary analysis. Use the provided spectral library as-is instead of generating a local consensus library.                  |
 | `--empirical_assembly_log`    | string  | `null`  | Path to a pre-existing empirical assembly log file. Only used when `--skip_preliminary_analysis true` and `--diann_speclib` are set. |
 | `--random_preanalysis`        | boolean | `false` | Enable random selection of spectrum files for empirical library generation.                                                          |
-| `--random_preanalysis_seed`   | integer | `42`    | Random seed for file selection when `--random_preanalysis` is enabled.                                                              |
-| `--empirical_assembly_ms_n`   | integer | `200`   | Number of randomly selected spectrum files when `--random_preanalysis` is enabled.                                                  |
+| `--random_preanalysis_seed`   | integer | `42`    | Random seed for file selection when `--random_preanalysis` is enabled.                                                               |
+| `--empirical_assembly_ms_n`   | integer | `200`   | Number of randomly selected spectrum files when `--random_preanalysis` is enabled.                                                   |
 
 ## 11. Quantification & Output
 
