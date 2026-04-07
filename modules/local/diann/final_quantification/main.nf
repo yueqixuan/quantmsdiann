@@ -66,7 +66,7 @@ process FINAL_QUANTIFICATION {
     report_decoys = params.diann_report_decoys ? "--report-decoys": ""
     diann_export_xic = params.diann_export_xic ? "--xic": ""
     // --direct-quant only exists in DIA-NN >= 1.9.2 (QuantUMS counterpart); skip for older versions
-    quantums = params.quantums ? "" : (params.diann_version >= '1.9' ? "--direct-quant" : "")
+    quantums = params.quantums ? "" : (VersionUtils.versionAtLeast(params.diann_version, '1.9') ? "--direct-quant" : "")
     quantums_train_runs = params.quantums_train_runs ? "--quant-train-runs $params.quantums_train_runs": ""
     quantums_sel_runs = params.quantums_sel_runs ? "--quant-sel-runs $params.quantums_sel_runs": ""
     quantums_params = params.quantums_params ? "--quant-params $params.quantums_params": ""

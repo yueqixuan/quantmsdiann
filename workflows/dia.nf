@@ -36,17 +36,17 @@ workflow DIA {
     ch_software_versions = channel.empty()
 
     // Version guard for DDA mode
-    if (params.diann_dda && params.diann_version < '2.3.2') {
+    if (params.diann_dda && VersionUtils.versionLessThan(params.diann_version, '2.3.2')) {
         error("DDA mode (--diann_dda) requires DIA-NN >= 2.3.2. Current version: ${params.diann_version}. Use -profile diann_v2_3_2")
     }
 
     // Version guard for InfinDIA
-    if (params.enable_infin_dia && params.diann_version < '2.3.0') {
+    if (params.enable_infin_dia && VersionUtils.versionLessThan(params.diann_version, '2.3.0')) {
         error("InfinDIA requires DIA-NN >= 2.3.0. Current version: ${params.diann_version}. Use -profile diann_v2_3_2")
     }
 
     // Version guard for DIA-NN 2.0+ features
-    if ((params.diann_light_models || params.diann_export_quant || params.diann_site_ms1_quant) && params.diann_version < '2.0') {
+    if ((params.diann_light_models || params.diann_export_quant || params.diann_site_ms1_quant) && VersionUtils.versionLessThan(params.diann_version, '2.0')) {
         def enabled = []
         if (params.diann_light_models) enabled << '--light-models'
         if (params.diann_export_quant) enabled << '--export-quant'

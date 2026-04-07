@@ -86,8 +86,8 @@ process INDIVIDUAL_ANALYSIS {
     diann_dda_flag = params.diann_dda ? "--dda" : ""
 
     // Flags removed in DIA-NN 2.3.x — only pass for older versions
-    no_ifs_removal = params.diann_version < '2.3' ? "--no-ifs-removal" : ""
-    no_main_report = params.diann_version < '2.3' ? "--no-main-report" : ""
+    no_ifs_removal = VersionUtils.versionLessThan(params.diann_version, '2.3') ? "--no-ifs-removal" : ""
+    no_main_report = VersionUtils.versionLessThan(params.diann_version, '2.3') ? "--no-main-report" : ""
 
     // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
     min_pr_mz = meta['ms1minmz'] ? "--min-pr-mz ${meta['ms1minmz']}" : ""
