@@ -2,6 +2,7 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
     tag "$meta.experiment_id"
     label 'process_low'
     label 'diann'
+    label 'error_retry'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://containers.biocontainers.pro/s3/SingImgsRepo/diann/v1.8.1_cv1/diann_v1.8.1_cv1.img' :
@@ -31,7 +32,7 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
          '--mass-acc', '--mass-acc-ms1', '--window',
          '--individual-mass-acc', '--individual-windows',
          '--out-lib', '--use-quant', '--gen-spec-lib', '--rt-profiling',
-         '--monitor-mod', '--var-mod', '--fixed-mod',
+         '--monitor-mod', '--var-mod', '--fixed-mod', '--dda',
          '--channels', '--lib-fixed-mod', '--original-mods']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
@@ -53,6 +54,7 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
     diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
+    diann_dda_flag = meta.acquisition_method == 'dda' ? "--dda" : ""
 
     """
     # Precursor Tolerance value was: ${meta['precursormasstolerance']}
@@ -79,6 +81,7 @@ process ASSEMBLE_EMPIRICAL_LIBRARY {
             ${diann_no_peptidoforms} \\
             ${diann_tims_sum} \\
             ${diann_im_window} \\
+            ${diann_dda_flag} \\
             \${mod_flags} \\
             $args
 

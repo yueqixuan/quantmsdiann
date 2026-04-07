@@ -456,6 +456,41 @@
                     "hidden": false,
                     "help_text": "Pass additional DIA-NN command-line arguments that will be appended to all DIA-NN steps (INSILICO_LIBRARY_GENERATION, PRELIMINARY_ANALYSIS, ASSEMBLE_EMPIRICAL_LIBRARY, INDIVIDUAL_ANALYSIS, FINAL_QUANTIFICATION). Flags that conflict with a specific step are automatically stripped with a warning. For step-specific overrides, use custom Nextflow config files with ext.args."
                 },
+                "diann_dda": {
+                    "type": "boolean",
+                    "description": "Explicitly enable DDA mode. Normally auto-detected from the SDRF acquisition method column. Use only when SDRF lacks this column. Requires DIA-NN >= 2.3.2.",
+                    "fa_icon": "fas fa-flask",
+                    "default": false
+                },
+                "diann_light_models": {
+                    "type": "boolean",
+                    "description": "Enable --light-models for 10x faster in-silico library generation (DIA-NN >= 2.0).",
+                    "fa_icon": "fas fa-bolt",
+                    "default": false
+                },
+                "diann_export_quant": {
+                    "type": "boolean",
+                    "description": "Enable --export-quant for fragment-level parquet data export (DIA-NN >= 2.0).",
+                    "fa_icon": "fas fa-file-export",
+                    "default": false
+                },
+                "diann_site_ms1_quant": {
+                    "type": "boolean",
+                    "description": "Enable --site-ms1-quant to use MS1 apex intensities for PTM site quantification (DIA-NN >= 2.0).",
+                    "fa_icon": "fas fa-crosshairs",
+                    "default": false
+                },
+                "enable_infin_dia": {
+                    "type": "boolean",
+                    "description": "Enable InfinDIA for ultra-large search spaces (DIA-NN >= 2.3.0). Experimental.",
+                    "fa_icon": "fas fa-infinity",
+                    "default": false
+                },
+                "diann_pre_select": {
+                    "type": "integer",
+                    "description": "Set --pre-select N precursor limit for InfinDIA pre-search.",
+                    "fa_icon": "fas fa-filter"
+                },
                 "save_speclib_tsv": {
                     "type": "boolean",
                     "default": false,

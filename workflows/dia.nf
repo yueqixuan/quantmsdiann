@@ -34,7 +34,29 @@ workflow DIA {
     main:
 
     ch_software_versions = channel.empty()
-    ch_searchdb = channel.fromPath(params.database, checkIfExists: true).first()
+
+    // Version guard for DDA mode (when explicitly set via param)
+    if (params.diann_dda && VersionUtils.versionLessThan(params.diann_version, '2.3.2')) {
+        error("DDA mode (--diann_dda) requires DIA-NN >= 2.3.2. Current version: ${params.diann_version}. Use -profile diann_v2_3_2")
+    }
+
+    // Version guard for InfinDIA
+    if (params.enable_infin_dia && VersionUtils.versionLessThan(params.diann_version, '2.3.0')) {
+        error("InfinDIA requires DIA-NN >= 2.3.0. Current version: ${params.diann_version}. Use -profile diann_v2_3_2")
+    }
+
+    // Version guard for DIA-NN 2.0+ features
+    if ((params.diann_light_models || params.diann_export_quant || params.diann_site_ms1_quant) && VersionUtils.versionLessThan(params.diann_version, '2.0')) {
+        def enabled = []
+        if (params.diann_light_models) enabled << '--light-models'
+        if (params.diann_export_quant) enabled << '--export-quant'
+        if (params.diann_site_ms1_quant) enabled << '--site-ms1-quant'
+        error("${enabled.join(', ')} require DIA-NN >= 2.0. Current version: ${params.diann_version}. Use -profile diann_v2_1_0 or later")
+    }
+
+    ch_searchdb = channel.fromPath(params.database, checkIfExists: true)
+        .ifEmpty { error("No protein database found at '${params.database}'. Provide --database <path/to/proteins.fasta>") }
+        .first()
 
     ch_file_preparation_results.multiMap {
         result ->
@@ -42,7 +64,18 @@ workflow DIA {
         ms_file:result[1]
     }.set { ch_result }
 
-    ch_experiment_meta = ch_result.meta.unique { m -> m.experiment_id }.first()
+    ch_experiment_meta = ch_result.meta.unique { m -> m.experiment_id }
+        .ifEmpty { error("No valid input files found after SDRF parsing. Check your SDRF file and input paths.") }
+        .first()
+
+    // Determine DDA mode: true if explicitly set via param OR auto-detected from SDRF
+    ch_is_dda = ch_experiment_meta.map { meta ->
+        def dda = params.diann_dda || meta.acquisition_method == 'dda'
+        if (dda && VersionUtils.versionLessThan(params.diann_version, '2.3.2')) {
+            error("DDA mode (detected from SDRF) requires DIA-NN >= 2.3.2. Current version: ${params.diann_version}. Use -profile diann_v2_3_2")
+        }
+        return dda
+    }
 
     // diann_config.cfg comes directly from SDRF_PARSING (convert-diann)
     // Use as value channel so it can be consumed by all per-file processes
@@ -54,7 +87,7 @@ workflow DIA {
     if (params.diann_speclib != null && params.diann_speclib.toString() != "") {
         speclib = channel.from(file(params.diann_speclib, checkIfExists: true))
     } else {
-        INSILICO_LIBRARY_GENERATION(ch_searchdb, ch_diann_cfg_val)
+        INSILICO_LIBRARY_GENERATION(ch_searchdb, ch_diann_cfg_val, ch_is_dda)
         speclib = INSILICO_LIBRARY_GENERATION.out.predict_speclib
     }
 

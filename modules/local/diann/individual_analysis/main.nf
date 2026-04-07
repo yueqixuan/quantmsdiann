@@ -2,6 +2,7 @@ process INDIVIDUAL_ANALYSIS {
     tag "$ms_file.baseName"
     label 'process_high'
     label 'diann'
+    label 'error_retry'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://containers.biocontainers.pro/s3/SingImgsRepo/diann/v1.8.1_cv1/diann_v1.8.1_cv1.img' :
@@ -27,7 +28,7 @@ process INDIVIDUAL_ANALYSIS {
          '--mass-acc', '--mass-acc-ms1', '--window',
          '--no-ifs-removal', '--no-main-report', '--relaxed-prot-inf', '--pg-level',
          '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
-         '--monitor-mod', '--var-mod', '--fixed-mod',
+         '--monitor-mod', '--var-mod', '--fixed-mod', '--dda',
          '--channels', '--lib-fixed-mod', '--original-mods']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
@@ -82,6 +83,11 @@ process INDIVIDUAL_ANALYSIS {
     diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
     diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
+    diann_dda_flag = meta.acquisition_method == 'dda' ? "--dda" : ""
+
+    // Flags removed in DIA-NN 2.3.x — only pass for older versions
+    no_ifs_removal = VersionUtils.versionLessThan(params.diann_version, '2.3') ? "--no-ifs-removal" : ""
+    no_main_report = VersionUtils.versionLessThan(params.diann_version, '2.3') ? "--no-main-report" : ""
 
     // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
     min_pr_mz = meta['ms1minmz'] ? "--min-pr-mz ${meta['ms1minmz']}" : ""
@@ -102,8 +108,8 @@ process INDIVIDUAL_ANALYSIS {
             --mass-acc ${mass_acc_ms2} \\
             --mass-acc-ms1 ${mass_acc_ms1} \\
             --window ${scan_window} \\
-            --no-ifs-removal \\
-            --no-main-report \\
+            ${no_ifs_removal} \\
+            ${no_main_report} \\
             --relaxed-prot-inf \\
             --pg-level $params.pg_level \\
             ${min_pr_mz} \\
@@ -113,6 +119,7 @@ process INDIVIDUAL_ANALYSIS {
             ${diann_no_peptidoforms} \\
             ${diann_tims_sum} \\
             ${diann_im_window} \\
+            ${diann_dda_flag} \\
             \${mod_flags} \\
             $args
 

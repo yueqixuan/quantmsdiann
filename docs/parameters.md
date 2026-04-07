@@ -27,6 +27,7 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--reindex_mzml`    | boolean | `true`  | Force re-indexing of input mzML files at the start of the pipeline for safety.                                                |
 | `--mzml_statistics` | boolean | `false` | Compute MS1/MS2 statistics from mzML files. Generates `*_ms_info.parquet` files for QC. Bruker `.d` files are always skipped. |
 | `--mzml_features`   | boolean | `false` | Compute MS1-level features during the mzML statistics step. Only available for mzML files.                                    |
+| `--convert_dotd`    | boolean | `false` | Convert Bruker .d files to mzML format before processing.                                                                     |
 
 ## 4. Search Parameters
 
@@ -51,12 +52,16 @@ This document lists every pipeline parameter organised by category. Default valu
 
 ## 5. DIA-NN General
 
-| Parameter            | Type    | Default | Description                                                                                                                                                                                                  |
-| -------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--diann_version`    | string  | `1.8.1` | DIA-NN version used by the workflow. Controls version-dependent flags (e.g. `--monitor-mod` for 1.8.x). See [DIA-NN Version Selection](usage.md#dia-nn-version-selection).                                   |
-| `--diann_debug`      | integer | `3`     | DIA-NN debug/verbosity level (0-4). Higher values produce more verbose logs.                                                                                                                                 |
-| `--diann_speclib`    | string  | `null`  | Path to an external spectral library. If provided, the in-silico library generation step is skipped.                                                                                                         |
-| `--diann_extra_args` | string  | `null`  | Extra arguments appended to all DIA-NN steps. Flags incompatible with a step are automatically stripped with a warning. See [Passing Extra Arguments to DIA-NN](usage.md#passing-extra-arguments-to-dia-nn). |
+| Parameter                | Type    | Default | Description                                                                                                                                                                                                     |
+| ------------------------ | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--diann_version`        | string  | `1.8.1` | DIA-NN version used by the workflow. Controls version-dependent flags (e.g. `--monitor-mod` for 1.8.x). See [DIA-NN Version Selection](usage.md#dia-nn-version-selection).                                      |
+| `--diann_debug`          | integer | `3`     | DIA-NN debug/verbosity level (0-4). Higher values produce more verbose logs.                                                                                                                                    |
+| `--diann_speclib`        | string  | `null`  | Path to an external spectral library. If provided, the in-silico library generation step is skipped.                                                                                                            |
+| `--diann_extra_args`     | string  | `null`  | Extra arguments appended to all DIA-NN steps. Flags incompatible with a step are automatically stripped with a warning. See [Passing Extra Arguments to DIA-NN](usage.md#passing-extra-arguments-to-dia-nn).    |
+| `--diann_dda`            | boolean | `false` | Explicitly enable DDA mode. Normally auto-detected from the SDRF `comment[proteomics data acquisition method]` column. Use this flag only when the SDRF lacks the acquisition method. Requires DIA-NN >= 2.3.2. |
+| `--diann_light_models`   | boolean | `false` | Enable `--light-models` for 10x faster in-silico library generation. Requires DIA-NN >= 2.0.                                                                                                                    |
+| `--diann_export_quant`   | boolean | `false` | Enable `--export-quant` for fragment-level parquet data export. Requires DIA-NN >= 2.0.                                                                                                                         |
+| `--diann_site_ms1_quant` | boolean | `false` | Enable `--site-ms1-quant` to use MS1 apex intensities for PTM site quantification. Requires DIA-NN >= 2.0.                                                                                                      |
 
 ## 6. Mass Accuracy & Calibration
 
@@ -92,12 +97,13 @@ This document lists every pipeline parameter organised by category. Default valu
 
 ## 10. Preliminary Analysis
 
-| Parameter                     | Type    | Default | Description                                                                                                         |
-| ----------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
-| `--skip_preliminary_analysis` | boolean | `false` | Skip preliminary analysis. Use the provided spectral library as-is instead of generating a local consensus library. |
-| `--random_preanalysis`        | boolean | `false` | Enable random selection of spectrum files for empirical library generation.                                         |
-| `--random_preanalysis_seed`   | integer | `42`    | Random seed for file selection when `--random_preanalysis` is enabled.                                              |
-| `--empirical_assembly_ms_n`   | integer | `200`   | Number of randomly selected spectrum files when `--random_preanalysis` is enabled.                                  |
+| Parameter                     | Type    | Default | Description                                                                                                                          |
+| ----------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `--skip_preliminary_analysis` | boolean | `false` | Skip preliminary analysis. Use the provided spectral library as-is instead of generating a local consensus library.                  |
+| `--empirical_assembly_log`    | string  | `null`  | Path to a pre-existing empirical assembly log file. Only used when `--skip_preliminary_analysis true` and `--diann_speclib` are set. |
+| `--random_preanalysis`        | boolean | `false` | Enable random selection of spectrum files for empirical library generation.                                                          |
+| `--random_preanalysis_seed`   | integer | `42`    | Random seed for file selection when `--random_preanalysis` is enabled.                                                               |
+| `--empirical_assembly_ms_n`   | integer | `200`   | Number of randomly selected spectrum files when `--random_preanalysis` is enabled.                                                   |
 
 ## 11. Quantification & Output
 
@@ -115,7 +121,27 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--quantums_sel_runs`     | integer | `null`  | Number of automatically selected runs for QuantUMS training. Must be >= 6. Maps to `--quant-sel-runs`. Requires DIA-NN >= 1.9.2.                                                                                                       |
 | `--quantums_params`       | string  | `null`  | Pre-calculated QuantUMS parameters. Maps to `--quant-params`. Requires DIA-NN >= 1.9.2.                                                                                                                                                |
 
-## 12. Quality Control
+## 12. DDA Mode
+
+| Parameter     | Type    | Default | Description                                                                                                                                                                                                                                |
+| ------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--diann_dda` | boolean | `false` | Explicitly enable DDA mode when SDRF lacks the acquisition method column. Normally DDA is auto-detected from the SDRF `comment[proteomics data acquisition method]`. Requires DIA-NN >= 2.3.2 (use `-profile diann_v2_3_2`). Beta feature. |
+
+> **Note:** DDA mode is auto-detected from the SDRF when the `comment[proteomics data acquisition method]`
+> column contains `data-dependent acquisition`. The `--diann_dda` flag is only needed as a
+> fallback when the SDRF does not include this column. DDA requires DIA-NN >= 2.3.2
+> (`-profile diann_v2_3_2`).
+
+## 13. InfinDIA (Experimental)
+
+| Parameter            | Type    | Default | Description                                                                            |
+| -------------------- | ------- | ------- | -------------------------------------------------------------------------------------- |
+| `--enable_infin_dia` | boolean | `false` | Enable InfinDIA for ultra-large search spaces. Requires DIA-NN >= 2.3.0. Experimental. |
+| `--diann_pre_select` | integer | `null`  | Precursor limit (`--pre-select N`) for InfinDIA pre-search.                            |
+
+> **Note:** InfinDIA requires DIA-NN >= 2.3.0 and is considered experimental.
+
+## 14. Quality Control
 
 | Parameter                    | Type    | Default | Description                                                                          |
 | ---------------------------- | ------- | ------- | ------------------------------------------------------------------------------------ |
@@ -124,7 +150,7 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--contaminant_string`       | string  | `CONT`  | Contaminant affix string for pmultiqc. Maps to `--contaminant_affix` in pmultiqc.    |
 | `--protein_level_fdr_cutoff` | number  | `0.01`  | Experiment-wide protein (group)-level FDR cutoff.                                    |
 
-## 13. MultiQC & Reporting
+## 15. MultiQC & Reporting
 
 | Parameter                       | Type               | Default | Description                                                                       |
 | ------------------------------- | ------------------ | ------- | --------------------------------------------------------------------------------- |
