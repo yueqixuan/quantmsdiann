@@ -30,7 +30,7 @@ process FINAL_QUANTIFICATION {
     path "diann_report.pg_matrix.tsv", emit: pg_matrix, optional: true
     path "diann_report.gg_matrix.tsv", emit: gg_matrix, optional: true
     path "diann_report.unique_genes_matrix.tsv", emit: unique_gene_matrix, optional: true
-    path "diannsummary.log", emit: log
+    path "diannsummary.log", emit: log, optional: true
 
     // Different library files format are exported due to different DIA-NN versions
     path "empirical_library.tsv", emit: final_speclib, optional: true
@@ -113,8 +113,6 @@ process FINAL_QUANTIFICATION {
             ${diann_channel_spec_norm} \\
             \${mod_flags} \\
             $args
-
-    cp diann_report.log.txt diannsummary.log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
