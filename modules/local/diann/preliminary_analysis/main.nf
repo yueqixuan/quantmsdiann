@@ -14,7 +14,7 @@ process PRELIMINARY_ANALYSIS {
 
     output:
     path "*.quant", emit: diann_quant
-    tuple val(meta), path("*_diann.log"), emit: log, optional: true
+    tuple val(meta), path("*_diann.log"), emit: log
     path "versions.yml", emit: versions
 
     when:
@@ -106,7 +106,8 @@ process PRELIMINARY_ANALYSIS {
             --no-prot-inf \\
             ${diann_dda_flag} \\
             \${mod_flags} \\
-            $args
+            $args \\
+            2>&1 | tee ${ms_file.baseName}_diann.log
 
     if [ -f report.log.txt ]; then
         cp report.log.txt ${ms_file.baseName}_diann.log

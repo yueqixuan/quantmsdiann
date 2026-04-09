@@ -17,7 +17,7 @@ process INSILICO_LIBRARY_GENERATION {
     path "versions.yml", emit: versions
     path "*.predicted.speclib", emit: predict_speclib
     path "*.tsv", emit: speclib_tsv, optional: true
-    path "silicolibrarygeneration.log.txt", emit: log, optional: true
+    path "silicolibrarygeneration.log", emit: log
 
     when:
     task.ext.when == null || task.ext.when
@@ -78,7 +78,12 @@ process INSILICO_LIBRARY_GENERATION {
             ${pre_select_flag} \\
             ${met_excision} \\
             ${diann_dda_flag} \\
-            ${args}
+            ${args} \\
+            2>&1 | tee silicolibrarygeneration.log
+
+    if [ -f silicolibrarygeneration.log.txt ]; then
+        cp silicolibrarygeneration.log.txt silicolibrarygeneration.log
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

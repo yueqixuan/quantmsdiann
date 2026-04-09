@@ -45,7 +45,7 @@ output:
       pattern: "*.tsv"
   - log:
       type: file
-      description: DIA-NN log file (optional, not produced by DIA-NN >= 2.x)
+      description: DIA-NN log file (captured via tee, overwritten with native log if available)
       pattern: "diannsummary.log"
   - versions:
       type: file
