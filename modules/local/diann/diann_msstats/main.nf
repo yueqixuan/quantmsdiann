@@ -22,7 +22,7 @@ process DIANN_MSSTATS {
     quantmsutilsc diann2msstats \\
         --report ${report} \\
         --exp_design ${exp_design} \\
-        --qvalue_threshold $params.protein_level_fdr_cutoff \\
+        --qvalue_threshold $params.precursor_qvalue \\
         $args \\
         2>&1 | tee convert_report.log
 
