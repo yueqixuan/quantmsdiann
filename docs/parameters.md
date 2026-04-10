@@ -148,7 +148,9 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--enable_pmultiqc`          | boolean | `true`  | Generate the pmultiqc QC report.                                                     |
 | `--pmultiqc_idxml_skip`      | boolean | `true`  | Skip idXML files (do not generate search engine score plots) in the pmultiqc report. |
 | `--contaminant_string`       | string  | `CONT`  | Contaminant affix string for pmultiqc. Maps to `--contaminant_affix` in pmultiqc.    |
-| `--protein_level_fdr_cutoff` | number  | `0.01`  | Experiment-wide protein (group)-level FDR cutoff.                                    |
+| `--precursor_qvalue`         | number  | `0.01`  | Precursor-level q-value threshold for the DIA-NN main report. Maps to `--qvalue`.    |
+| `--matrix_qvalue`            | number  | `0.01`  | Q-value threshold for DIA-NN output matrices (pr_matrix, pg_matrix). Maps to `--matrix-qvalue`. |
+| `--matrix_spec_q`            | number  | `0.05`  | Run-specific protein q-value for protein/gene matrices. Maps to `--matrix-spec-q`.   |
 
 ## 15. MultiQC & Reporting
 

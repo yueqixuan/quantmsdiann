@@ -248,22 +248,6 @@
             },
             "fa_icon": "fas fa-star-half-alt"
         },
-        "protein_inference": {
-            "title": "Protein inference",
-            "type": "object",
-            "description": "To group proteins, calculate scores on the protein (group) level and to potentially modify associations from peptides to proteins.",
-            "default": "",
-            "properties": {
-                "protein_level_fdr_cutoff": {
-                    "type": "number",
-                    "description": "The experiment-wide protein (group)-level FDR cutoff. Default: 0.01",
-                    "default": 0.01,
-                    "fa_icon": "fas fa-filter",
-                    "help_text": "This can be protein level if 'strictly_unique_peptides' are used for protein quantification. See [`--protein_quant`](#protein_quant)"
-                }
-            },
-            "fa_icon": "fab fa-hubspot"
-        },
         "DIA-NN": {
             "title": "DIA-NN",
             "type": "object",
@@ -336,6 +320,27 @@
                     "fa_icon": "fas fa-list-ol",
                     "enum": [0, 1, 2],
                     "default": 2
+                },
+                "precursor_qvalue": {
+                    "type": "number",
+                    "description": "Precursor-level q-value filtering threshold for the DIA-NN main report. Maps to --qvalue.",
+                    "default": 0.01,
+                    "fa_icon": "fas fa-filter",
+                    "help_text": "Controls how strictly precursor identifications are filtered in the DIA-NN main report. For proteogenomics with variant databases, the standard 0.01 (1%) is recommended."
+                },
+                "matrix_qvalue": {
+                    "type": "number",
+                    "description": "Q-value threshold for DIA-NN output matrices (pr_matrix, pg_matrix, etc.). Maps to --matrix-qvalue.",
+                    "default": 0.01,
+                    "fa_icon": "fas fa-filter",
+                    "help_text": "Controls the global q-value filtering applied when generating the quantification matrices. Default matches DIA-NN's built-in default of 1%."
+                },
+                "matrix_spec_q": {
+                    "type": "number",
+                    "description": "Run-specific protein q-value filter for protein/gene matrices. Maps to --matrix-spec-q.",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-filter",
+                    "help_text": "An additional run-specific protein-level FDR filter applied to the protein and gene matrices. Default matches DIA-NN's built-in default of 5%. For proteogenomics/variant detection, consider setting to 1.0 to retain variant proteins that lack sufficient unique peptides for protein-level confidence."
                 },
                 "species_genes": {
                     "type": "boolean",
@@ -721,9 +726,6 @@
         },
         {
             "$ref": "#/$defs/psm_re_scoring_general"
-        },
-        {
-            "$ref": "#/$defs/protein_inference"
         },
         {
             "$ref": "#/$defs/DIA-NN"

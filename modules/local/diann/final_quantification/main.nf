@@ -47,7 +47,7 @@ process FINAL_QUANTIFICATION {
     def blocked = ['--no-main-report', '--gen-spec-lib', '--out-lib', '--no-ifs-removal',
          '--temp', '--threads', '--verbose', '--lib', '--f', '--fasta',
          '--use-quant', '--matrices', '--out', '--relaxed-prot-inf', '--pg-level',
-         '--qvalue', '--window', '--individual-windows',
+         '--qvalue', '--matrix-qvalue', '--matrix-spec-q', '--window', '--individual-windows',
          '--species-genes', '--report-decoys', '--xic', '--no-norm',
          '--monitor-mod', '--var-mod', '--fixed-mod', '--dda', '--export-quant', '--site-ms1-quant',
          '--channels', '--lib-fixed-mod', '--original-mods']
@@ -97,7 +97,9 @@ process FINAL_QUANTIFICATION {
             ${no_norm} \\
             --matrices \\
             --out diann_report.tsv \\
-            --qvalue $params.protein_level_fdr_cutoff \\
+            --qvalue $params.precursor_qvalue \\
+            --matrix-qvalue $params.matrix_qvalue \\
+            --matrix-spec-q $params.matrix_spec_q \\
             ${report_decoys} \\
             ${diann_export_xic} \\
             ${quantums} \\
