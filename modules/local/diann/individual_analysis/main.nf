@@ -30,7 +30,7 @@ process INDIVIDUAL_ANALYSIS {
          '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
          '--monitor-mod', '--var-mod', '--fixed-mod', '--dda',
          '--channels', '--lib-fixed-mod', '--original-mods',
-         '--proteoforms', '--peptidoforms']
+         '--proteoforms', '--peptidoforms', '--no-peptidoforms']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -81,11 +81,10 @@ process INDIVIDUAL_ANALYSIS {
         }
     }
 
-    diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     scoring_mode = params.scoring_mode == 'proteoforms' ? '--proteoforms' :
                          params.scoring_mode == 'peptidoforms' ? '--peptidoforms' : ''
-    diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
-    diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
+    diann_tims_sum = params.tims_sum ? "--quant-tims-sum" : ""
+    diann_im_window = params.im_window ? "--im-window $params.im_window" : ""
     diann_dda_flag = meta.acquisition_method == 'dda' ? "--dda" : ""
 
     // Flags removed in DIA-NN 2.3.x — only pass for older versions
@@ -106,7 +105,7 @@ process INDIVIDUAL_ANALYSIS {
             --f ${ms_file} \\
             --fasta ${fasta} \\
             --threads ${task.cpus} \\
-            --verbose $params.diann_debug \\
+            --verbose $params.debug_level \\
             --temp ./ \\
             --mass-acc ${mass_acc_ms2} \\
             --mass-acc-ms1 ${mass_acc_ms1} \\
@@ -119,7 +118,6 @@ process INDIVIDUAL_ANALYSIS {
             ${max_pr_mz} \\
             ${min_fr_mz} \\
             ${max_fr_mz} \\
-            ${diann_no_peptidoforms} \\
             ${scoring_mode} \\
             ${diann_tims_sum} \\
             ${diann_im_window} \\

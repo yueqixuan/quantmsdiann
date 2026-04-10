@@ -30,7 +30,7 @@ process PRELIMINARY_ANALYSIS {
          '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
          '--monitor-mod', '--var-mod', '--fixed-mod', '--no-prot-inf', '--dda',
          '--channels', '--lib-fixed-mod', '--original-mods',
-         '--proteoforms', '--peptidoforms']
+         '--proteoforms', '--peptidoforms', '--no-peptidoforms']
     // Sort by length descending so longer flags (e.g. --mass-acc-ms1) are matched before shorter prefixes (--mass-acc)
     blocked.sort { a -> -a.length() }.each { flag ->
         def flagPattern = '(?<=^|\\s)' + java.util.regex.Pattern.quote(flag) + '(?=\\s|\$)(\\s+(?!-{1,2}[a-zA-Z])\\S+)*'
@@ -43,7 +43,6 @@ process PRELIMINARY_ANALYSIS {
     // Performance flags for preliminary analysis calibration step
     quick_mass_acc = params.quick_mass_acc ? "--quick-mass-acc" : ""
     performance_flags = params.performance_mode ? "--min-corr 2 --corr-diff 1 --time-corr-only" : ""
-    diann_no_peptidoforms = params.diann_no_peptidoforms ? "--no-peptidoforms" : ""
     scoring_mode = params.scoring_mode == 'proteoforms' ? '--proteoforms' :
                          params.scoring_mode == 'peptidoforms' ? '--peptidoforms' : ''
 
@@ -69,8 +68,8 @@ process PRELIMINARY_ANALYSIS {
 
     // Notes: Use double quotes for params, so that it is escaped in the shell.
     scan_window = params.scan_window_automatic ? '' : "--window $params.scan_window"
-    diann_tims_sum = params.diann_tims_sum ? "--quant-tims-sum" : ""
-    diann_im_window = params.diann_im_window ? "--im-window $params.diann_im_window" : ""
+    diann_tims_sum = params.tims_sum ? "--quant-tims-sum" : ""
+    diann_im_window = params.im_window ? "--im-window $params.im_window" : ""
     diann_dda_flag = meta.acquisition_method == 'dda' ? "--dda" : ""
 
     // Per-file scan ranges from SDRF (empty = no flag, DIA-NN auto-detects)
@@ -93,7 +92,7 @@ process PRELIMINARY_ANALYSIS {
     diann   --lib ${predict_library} \\
             --f ${ms_file} \\
             --threads ${task.cpus} \\
-            --verbose $params.diann_debug \\
+            --verbose $params.debug_level \\
             ${scan_window} \\
             --temp ./ \\
             ${mass_acc} \\
@@ -103,7 +102,6 @@ process PRELIMINARY_ANALYSIS {
             ${max_pr_mz} \\
             ${min_fr_mz} \\
             ${max_fr_mz} \\
-            ${diann_no_peptidoforms} \\
             ${scoring_mode} \\
             ${diann_tims_sum} \\
             ${diann_im_window} \\
