@@ -32,9 +32,10 @@ class BlockedFlags {
     //   --var-mod/--fixed-mod/--monitor-mod/--channels/--lib-fixed-mod/--original-mods: injected from diann_config.cfg
     //   --dda: auto-detected from SDRF or set via --dda param
     //   --proteoforms/--peptidoforms/--no-peptidoforms: controlled by scoring_mode param
+    //   --parent: container-managed (DIA-NN model path), overriding breaks model discovery
     private static final List<String> COMMON = [
         '--temp', '--threads', '--verbose', '--lib', '--f', '--fasta',
-        '--monitor-mod', '--var-mod', '--fixed-mod', '--dda',
+        '--monitor-mod', '--var-mod', '--fixed-mod', '--dda', '--parent',
         '--channels', '--lib-fixed-mod', '--original-mods',
         '--proteoforms', '--peptidoforms', '--no-peptidoforms',
     ]
