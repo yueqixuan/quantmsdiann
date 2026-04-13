@@ -10,7 +10,9 @@
 include { DIANN_MSSTATS               } from '../modules/local/diann/diann_msstats/main'
 include { PRELIMINARY_ANALYSIS        } from '../modules/local/diann/preliminary_analysis/main'
 include { ASSEMBLE_EMPIRICAL_LIBRARY  } from '../modules/local/diann/assemble_empirical_library/main'
-include { INSILICO_LIBRARY_GENERATION } from '../modules/local/diann/insilico_library_generation/main'
+include { INSILICO_LIBRARY_GENERATION                        } from '../modules/local/diann/insilico_library_generation/main'
+include { INSILICO_LIBRARY_GENERATION as TUNED_LIBRARY_GENERATION } from '../modules/local/diann/insilico_library_generation/main'
+include { FINE_TUNE_MODELS            } from '../modules/local/diann/fine_tune_models/main'
 include { INDIVIDUAL_ANALYSIS         } from '../modules/local/diann/individual_analysis/main'
 include { FINAL_QUANTIFICATION        } from '../modules/local/diann/final_quantification/main'
 
@@ -61,6 +63,16 @@ workflow DIA {
         error("${enabled.join(', ')} require DIA-NN >= 2.0. Current version: ${params.diann_version}. Use -profile diann_v2_1_0 or later")
     }
 
+    // Version guard for model fine-tuning
+    if (params.enable_fine_tuning && VersionUtils.versionLessThan(params.diann_version, '2.0')) {
+        error("Model fine-tuning requires DIA-NN >= 2.0. Current version: ${params.diann_version}. Use -profile diann_v2_1_0 or later")
+    }
+
+    // Fine-tuning requires the standard preliminary + assembly path (not skip_preliminary_analysis)
+    if (params.enable_fine_tuning && params.skip_preliminary_analysis) {
+        error("--enable_fine_tuning cannot be used with --skip_preliminary_analysis. Fine-tuning requires an empirical library from the assembly step.")
+    }
+
     // Warn about contradictory normalization flags
     if (!params.normalize && (params.channel_run_norm || params.channel_spec_norm)) {
         log.warn "Both --normalize false (adds --no-norm) and channel normalization flags are set. " +
@@ -100,7 +112,7 @@ workflow DIA {
     if (params.speclib != null && params.speclib.toString() != "") {
         speclib = channel.from(file(params.speclib, checkIfExists: true))
     } else {
-        INSILICO_LIBRARY_GENERATION(ch_searchdb, ch_diann_cfg_val, ch_is_dda)
+        INSILICO_LIBRARY_GENERATION(ch_searchdb, ch_diann_cfg_val, ch_is_dda, [], [], [])
         speclib = INSILICO_LIBRARY_GENERATION.out.predict_speclib
     }
 
@@ -183,6 +195,53 @@ workflow DIA {
                 return [ new_meta, ms_file, fasta, library ]
             }
         empirical_lib = ASSEMBLE_EMPIRICAL_LIBRARY.out.empirical_library
+
+        //
+        // MODULE: FINE_TUNE_MODELS (optional) — fine-tune DL prediction models on empirical library
+        //
+        // When enabled, the empirical library is used to train better RT/IM/fragment models.
+        // These tuned models are then used to regenerate the in-silico library, which replaces
+        // the empirical library for individual analysis — producing better-predicted spectra
+        // for non-standard modifications.
+        //
+        if (params.enable_fine_tuning) {
+            FINE_TUNE_MODELS(
+                ASSEMBLE_EMPIRICAL_LIBRARY.out.empirical_library,
+                ch_searchdb,
+                ch_diann_cfg_val
+            )
+            ch_software_versions = ch_software_versions
+                .mix(FINE_TUNE_MODELS.out.versions)
+
+            // Re-generate in-silico library using fine-tuned models
+            TUNED_LIBRARY_GENERATION(
+                ch_searchdb,
+                ch_diann_cfg_val,
+                ch_is_dda,
+                FINE_TUNE_MODELS.out.tokens,
+                FINE_TUNE_MODELS.out.rt_model,
+                FINE_TUNE_MODELS.out.im_model
+            )
+            ch_software_versions = ch_software_versions
+                .mix(TUNED_LIBRARY_GENERATION.out.versions)
+
+            // Replace the library used for individual analysis with the tuned one
+            tuned_speclib = TUNED_LIBRARY_GENERATION.out.predict_speclib
+            indiv_fin_analysis_in = ch_file_preparation_results
+                .combine(ch_searchdb)
+                .combine(tuned_speclib)
+                .combine(ch_parsed_vals)
+                .map { meta_map, ms_file, fasta, library, param_string ->
+                    def values = param_string.trim().split(',')
+                    def new_meta = meta_map + [
+                        mass_acc_ms2 : values[0],
+                        mass_acc_ms1 : values[1],
+                        scan_window  : values[2]
+                    ]
+                    return [ new_meta, ms_file, fasta, library ]
+                }
+            empirical_lib = tuned_speclib
+        }
     }
 
     //

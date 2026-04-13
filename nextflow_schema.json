@@ -500,6 +500,24 @@
                     "fa_icon": "fas fa-crosshairs",
                     "default": false
                 },
+                "enable_fine_tuning": {
+                    "type": "boolean",
+                    "description": "Enable DL model fine-tuning after empirical library assembly. Trains RT/IM models on the empirical library, then regenerates the in-silico library with tuned models. Requires DIA-NN >= 2.0.",
+                    "fa_icon": "fas fa-brain",
+                    "default": false,
+                    "help_text": "When enabled, the pipeline adds a FINE_TUNE_MODELS step after ASSEMBLE_EMPIRICAL_LIBRARY. The empirical library is used to fine-tune the deep learning prediction models for non-standard modifications. A new in-silico library is then generated with the tuned models, and the rest of the pipeline uses this improved library. Cannot be used with --skip_preliminary_analysis."
+                },
+                "tune_fr": {
+                    "type": "boolean",
+                    "description": "Also fine-tune the fragmentation model (quality-sensitive — verify results vs base model).",
+                    "fa_icon": "fas fa-flask",
+                    "default": false
+                },
+                "tune_lr": {
+                    "type": "number",
+                    "description": "Fine-tuning learning rate (default in DIA-NN: 0.0005). Maps to --tune-lr.",
+                    "fa_icon": "fas fa-sliders-h"
+                },
                 "enable_infin_dia": {
                     "type": "boolean",
                     "description": "Enable InfinDIA for ultra-large search spaces (DIA-NN >= 2.3.0). Experimental.",

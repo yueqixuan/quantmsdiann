@@ -12,6 +12,9 @@ process INSILICO_LIBRARY_GENERATION {
     path(fasta)
     path(diann_config)
     val(is_dda)
+    path(tuned_tokens)   // optional: fine-tuned tokenizer dict (pass [] when not used)
+    path(tuned_rt_model) // optional: fine-tuned RT model (pass [] when not used)
+    path(tuned_im_model) // optional: fine-tuned IM model (pass [] when not used)
 
     output:
     path "versions.yml", emit: versions
@@ -37,6 +40,10 @@ process INSILICO_LIBRARY_GENERATION {
                          params.scoring_mode == 'peptidoforms' ? '--peptidoforms' : ''
     diann_dda_flag = is_dda ? "--dda" : ""
     diann_light_models = params.light_models ? "--light-models" : ""
+    // Fine-tuned model flags — only set when tuned model files are provided
+    tuned_tokens_flag = tuned_tokens ? "--tokens ${tuned_tokens}" : ''
+    tuned_rt_flag = tuned_rt_model ? "--rt-model ${tuned_rt_model}" : ''
+    tuned_im_flag = tuned_im_model ? "--im-model ${tuned_im_model}" : ''
     infin_dia_flag = params.enable_infin_dia ? "--infin-dia" : ""
     pre_select_flag = (params.enable_infin_dia && params.pre_select) ? "--pre-select $params.pre_select" : ""
 
@@ -61,6 +68,9 @@ process INSILICO_LIBRARY_GENERATION {
             --gen-spec-lib \\
             ${scoring_mode} \\
             ${diann_light_models} \\
+            ${tuned_tokens_flag} \\
+            ${tuned_rt_flag} \\
+            ${tuned_im_flag} \\
             ${infin_dia_flag} \\
             ${pre_select_flag} \\
             ${met_excision} \\
