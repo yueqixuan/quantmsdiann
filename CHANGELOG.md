@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] bigbio/quantmsdiann — Rome - 2026-04-12
+## [2.0.0] bigbio/quantmsdiann — Rome - 2026-04-13
 
 ### `Added`
 
@@ -54,8 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | `dia-nn`              | 1.8.1+    |
 | `thermorawfileparser` | 2.0.0.dev |
 | `sdrf-pipelines`      | 0.1.2     |
-| `pmultiqc`            | 0.0.43    |
-| `quantms-utils`       | 0.0.28    |
+| `pmultiqc`            | 0.0.44    |
+| `quantms-utils`       | 0.0.29    |
 
 ---
 
