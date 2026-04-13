@@ -63,6 +63,27 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--export_quant`   | boolean | `false` | Enable `--export-quant` for fragment-level parquet data export. Requires DIA-NN >= 2.0.                                                                                                                         |
 | `--site_ms1_quant` | boolean | `false` | Enable `--site-ms1-quant` to use MS1 apex intensities for PTM site quantification. Requires DIA-NN >= 2.0.                                                                                                      |
 
+### DIA-NN 2.5.0 flags (via `--extra_args`)
+
+The following DIA-NN 2.5.0 flags are not exposed as pipeline parameters but can be passed via `--extra_args`. See [Fine-Tuning Deep Learning Models](usage.md#fine-tuning-deep-learning-models-dia-nn-20) for the complete workflow.
+
+| DIA-NN flag              | Description                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `--tokens <file>`        | Tokenizer dictionary mapping modified residues to neural network token IDs (0-255).              |
+| `--rt-model <file>`      | Fine-tuned retention time prediction model (`.pt` PyTorch file).                                 |
+| `--fr-model <file>`      | Fine-tuned fragment ion prediction model (`.pt` file). Quality-sensitive — verify vs base model. |
+| `--im-model <file>`      | Fine-tuned ion mobility prediction model (`.pt` file).                                           |
+| `--tune-lib <file>`      | Spectral library for fine-tuning (`.parquet`). Requires `--tune-rt` and/or `--tune-im`.          |
+| `--tune-rt`              | Fine-tune the RT deep learning predictor. Requires `--tune-lib`.                                 |
+| `--tune-im`              | Fine-tune the IM deep learning predictor. Requires `--tune-lib`.                                 |
+| `--tune-fr`              | Fine-tune the fragmentation predictor. Requires `--tune-lib`. Use with caution.                  |
+| `--tune-lr <X>`          | Fine-tuning learning rate (default: 0.0005).                                                     |
+| `--tune-restrict-layers` | Keep RNN layer weights fixed during fine-tuning (except cysteine embeddings).                    |
+| `--tune-level <N>`       | Limit fine-tuning to a specific model distillation level (0, 1, or 2).                           |
+| `--aa-eq`                | Treat I&L, Q&E, N&D as equivalent during reannotation. Essential for entrapment FDR benchmarks.  |
+
+> **Note:** `--parent` is blocked by the pipeline — it controls the container's DIA-NN installation path and overriding it would break model discovery.
+
 ## 6. Mass Accuracy & Calibration
 
 | Parameter                 | Type    | Default | Description                                                                                                                   |
