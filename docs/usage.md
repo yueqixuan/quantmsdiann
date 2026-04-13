@@ -352,49 +352,83 @@ nextflow run bigbio/quantmsdiann \
 
 ## Fine-Tuning Deep Learning Models (DIA-NN 2.0+)
 
-DIA-NN uses deep learning models to predict retention time (RT), ion mobility (IM), and fragment ion intensities. For non-standard modifications (beyond Oxidation, Phospho, Carbamidomethyl, etc.), fine-tuning these models can substantially improve detection.
+DIA-NN uses deep learning models to predict retention time (RT), ion mobility (IM), and fragment ion intensities. For non-standard modifications, fine-tuning these models on real data can substantially improve detection.
 
-**When to fine-tune:** Fine-tuning is beneficial for custom chemical labels (e.g., mTRAQ, dimethyl), exotic PTMs, or unmodified cysteines. Standard modifications (Phospho, Oxidation, Acetylation, Deamidation, diGlycine) do not require fine-tuning.
+**When to fine-tune:** Fine-tuning is beneficial for custom chemical labels (e.g., mTRAQ, dimethyl), exotic PTMs, or unmodified cysteines. Standard modifications (Phospho, Oxidation, Acetylation, Deamidation, diGlycine) do not require fine-tuning — DIA-NN's built-in models already handle them well.
 
-### Step 1: Generate a tuning library
+### How fine-tuning works
 
-Run the pipeline normally on raw files containing the modifications of interest. The empirical library produced by the ASSEMBLE_EMPIRICAL_LIBRARY step can serve as the tuning library.
+DIA-NN's neural networks encode each amino acid and modification as a "token" — an integer ID (0-255) mapped in a dictionary file (`dict.txt`). The default dictionary ships with DIA-NN and covers common modifications. When you fine-tune, DIA-NN:
 
-### Step 2: Fine-tune models (outside the pipeline)
+1. Reads a spectral library containing empirically observed peptides with the modifications of interest
+2. Learns how those modifications affect RT, IM, and fragmentation patterns
+3. Outputs new model files (`.pt` PyTorch format) and an expanded dictionary (`dict.txt`) that includes tokens for the new modifications
 
-Fine-tuning is currently a separate step run outside quantmsdiann:
+The fine-tuned models are then used in place of the defaults when generating predicted spectral libraries.
+
+> [!NOTE]
+> **`--tune-lib` cannot be combined with `--gen-spec-lib` in a single DIA-NN invocation** ([confirmed in DIA-NN #1499](https://github.com/vdemichev/DiaNN/issues/1499)). Fine-tuning and library generation are separate DIA-NN commands. This means the workflow currently requires two pipeline runs.
+
+### Current workflow (manual fine-tuning)
+
+**Run 1 — Generate the tuning library:**
+
+Run quantmsdiann normally. The empirical library produced by the ASSEMBLE_EMPIRICAL_LIBRARY step (after preliminary analysis) serves as the tuning library. This library contains empirically observed RT, IM, and fragment intensities for peptides bearing the modifications of interest.
+
+```bash
+# First run: standard pipeline to produce empirical library
+nextflow run bigbio/quantmsdiann \
+    -profile diann_v2_5_0,docker \
+    --input sdrf.tsv --database db.fasta --outdir results_run1
+# Output: results_run1/library_generation/assemble_empirical_library/empirical_library.parquet
+```
+
+**Fine-tune models (outside the pipeline):**
 
 ```bash
 # Fine-tune RT and IM models using the empirical library
-diann --tune-lib empirical_library.parquet --tune-rt --tune-im
+diann --tune-lib /abs/path/to/empirical_library.parquet --tune-rt --tune-im
 
-# Optionally also fine-tune the fragmentation model (quality-sensitive)
-diann --tune-lib empirical_library.parquet --tune-rt --tune-im --tune-fr
+# Optionally also fine-tune the fragmentation model (quality-sensitive — verify vs base model)
+diann --tune-lib /abs/path/to/empirical_library.parquet --tune-rt --tune-im --tune-fr
 ```
 
-DIA-NN will produce these output files (named after the input library):
+DIA-NN will output (named after the input library):
 
-- `empirical_library.dict.txt` — tokenizer dictionary mapping modifications to neural network tokens
-- `empirical_library.rt.d0.pt` (+ `.d1.pt`, `.d2.pt`) — fine-tuned RT models
+- `empirical_library.dict.txt` — expanded tokenizer dictionary with new modification tokens
+- `empirical_library.rt.d0.pt` (+ `.d1.pt`, `.d2.pt`) — fine-tuned RT models (3 distillation levels)
 - `empirical_library.im.d0.pt` (+ `.d1.pt`, `.d2.pt`) — fine-tuned IM models
-- `empirical_library.fr.d0.pt` (+ `.d1.pt`, `.d2.pt`) — fine-tuned fragment models (if `--tune-fr` used)
+- `empirical_library.fr.d0.pt` (+ `.d1.pt`, `.d2.pt`) — fine-tuned fragment models (if `--tune-fr`)
 
-Additional tuning parameters: `--tune-lr` (learning rate, default 0.0005), `--tune-restrict-layers` (fix RNN weights), `--tune-level` (limit to specific distillation level 0/1/2).
+Additional tuning parameters: `--tune-lr` (learning rate, default 0.0005), `--tune-restrict-layers` (fix RNN weights), `--tune-level` (limit to a specific distillation level 0/1/2).
 
-### Step 3: Use fine-tuned models in the pipeline
-
-Pass the fine-tuned model files to quantmsdiann via `--extra_args`:
+**Run 2 — Re-run the pipeline with fine-tuned models:**
 
 ```bash
+# Second run: use tuned models for in-silico library generation and all downstream steps
 nextflow run bigbio/quantmsdiann \
     -profile diann_v2_5_0,docker \
     --input sdrf.tsv --database db.fasta \
-    --extra_args "--tokens /path/to/empirical_library.dict.txt --rt-model /path/to/empirical_library.rt.d0.pt --im-model /path/to/empirical_library.im.d0.pt" \
-    --outdir results
+    --extra_args "--tokens /abs/path/to/empirical_library.dict.txt --rt-model /abs/path/to/empirical_library.rt.d0.pt --im-model /abs/path/to/empirical_library.im.d0.pt" \
+    --outdir results_run2
 ```
 
+The `--tokens`, `--rt-model`, and `--im-model` flags are passed to all DIA-NN steps via `--extra_args`, so the in-silico library generation uses the fine-tuned models to produce better-predicted spectra for the non-standard modifications.
+
 > [!IMPORTANT]
-> Use **absolute paths** for model files. The `--tokens`, `--rt-model`, `--fr-model`, and `--im-model` flags are passed through to all DIA-NN steps via `--extra_args`. The `--parent` flag is blocked by the pipeline (it controls the container's DIA-NN installation path).
+> Use **absolute paths** for model files. The `--parent` flag is blocked by the pipeline (it controls the container's DIA-NN installation path).
+
+### Future: integrated fine-tuning step
+
+We are exploring adding an optional `FINE_TUNE_MODELS` step directly in the pipeline, which would eliminate the need for two separate runs. The integrated workflow would be:
+
+```
+INSILICO_LIBRARY → PRELIMINARY_ANALYSIS → ASSEMBLE_EMPIRICAL_LIBRARY
+    → [FINE_TUNE_MODELS] → INSILICO_LIBRARY (with tuned models)
+    → INDIVIDUAL_ANALYSIS → FINAL_QUANTIFICATION
+```
+
+This would be gated by a `--enable_fine_tuning` parameter. [@vdemichev](https://github.com/vdemichev): would this approach work correctly — using the empirical library from assembly as `--tune-lib`, then regenerating the in-silico library with the tuned models before proceeding to individual analysis? Or would you recommend a different integration point?
 
 ## Verbose Module Output
 
