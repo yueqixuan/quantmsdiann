@@ -502,10 +502,16 @@
                 },
                 "enable_fine_tuning": {
                     "type": "boolean",
-                    "description": "Enable DL model fine-tuning after empirical library assembly. Trains RT/IM models on the empirical library, then regenerates the in-silico library with tuned models. Requires DIA-NN >= 2.0.",
+                    "description": "Enable DL model fine-tuning before the main analysis. Runs a tuning search on a file subset, fine-tunes RT/IM models, then runs the full pipeline with tuned models. Requires DIA-NN >= 2.0.",
                     "fa_icon": "fas fa-brain",
                     "default": false,
-                    "help_text": "When enabled, the pipeline adds a FINE_TUNE_MODELS step after ASSEMBLE_EMPIRICAL_LIBRARY. The empirical library is used to fine-tune the deep learning prediction models for non-standard modifications. A new in-silico library is then generated with the tuned models, and the rest of the pipeline uses this improved library. Cannot be used with --skip_preliminary_analysis."
+                    "help_text": "When enabled, Phase 0 runs before the main pipeline: (1) in-silico library generation with default models, (2) preliminary analysis + assembly on a subset of files (controlled by --tune_n_files), (3) fine-tuning RT/IM models on the resulting empirical library, (4) re-generation of the in-silico library with tuned models. The main pipeline then runs from preliminary analysis using the tuned library."
+                },
+                "tune_n_files": {
+                    "type": "integer",
+                    "description": "Number of files to use for the fine-tuning search. Use the largest/best-quality files.",
+                    "fa_icon": "fas fa-layer-group",
+                    "default": 3
                 },
                 "tune_fr": {
                     "type": "boolean",
