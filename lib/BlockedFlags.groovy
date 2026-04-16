@@ -61,6 +61,8 @@ class BlockedFlags {
             '--min-pr-mz', '--max-pr-mz', '--min-fr-mz', '--max-fr-mz',
             '--met-excision', '--light-models',
             '--infin-dia', '--pre-select',
+            // Pipeline-managed when fine-tuning: tuned model files passed as process inputs
+            '--tokens', '--rt-model', '--im-model', '--fr-model',
         ],
         PRELIMINARY_ANALYSIS: [
             // Pipeline-managed: set from params and SDRF calibration metadata
@@ -105,6 +107,11 @@ class BlockedFlags {
             '--export-quant', '--site-ms1-quant',
             '--channel-run-norm', '--channel-spec-norm',
             '--no-prot-inf',
+        ],
+        FINE_TUNE_MODELS: [
+            // Pipeline-managed: tuning flags set from enable_fine_tuning, tune_fr, tune_lr params
+            '--tune-lib', '--tune-rt', '--tune-im', '--tune-fr', '--tune-lr',
+            '--tune-restrict-layers', '--tune-level',
         ],
     ]
 
