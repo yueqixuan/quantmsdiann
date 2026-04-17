@@ -14,9 +14,9 @@ process FINE_TUNE_MODELS {
 
     output:
     path "*.dict.txt", emit: tokens
-    path "*.rt.d0.pt", emit: rt_model
-    path "*.im.d0.pt", emit: im_model, optional: true
-    path "*.fr.d0.pt", emit: fr_model, optional: true
+    path "*.{tuned_rt,rt.d0}.pt", emit: rt_model, optional: true
+    path "*.{tuned_im,im.d0}.pt", emit: im_model, optional: true
+    path "*.{tuned_fr,fr.d0}.pt", emit: fr_model, optional: true
     path "fine_tune.log", emit: log
     path "versions.yml", emit: versions
 
