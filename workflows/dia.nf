@@ -66,8 +66,8 @@ workflow DIA {
     }
 
     // Version guard for model fine-tuning
-    if (params.enable_fine_tuning && VersionUtils.versionLessThan(params.diann_version, '2.0')) {
-        error("Model fine-tuning requires DIA-NN >= 2.0. Current version: ${params.diann_version}. Use -profile diann_v2_1_0 or later")
+    if (params.enable_fine_tuning && VersionUtils.versionLessThan(params.diann_version, '2.3.2')) {
+        error("Model fine-tuning requires DIA-NN >= 2.3.2. Current version: ${params.diann_version}. Use -profile diann_v2_3_2 or later")
     }
 
     // Warn about contradictory normalization flags
