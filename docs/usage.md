@@ -102,6 +102,7 @@ The pipeline uses the same workflow for DDA as DIA — the `--dda` flag is passe
 - `--mzml_features` (default: false) — Enable feature detection in mzML statistics.
 
 Bruker `.d` files are supported natively by the current workflow and are passed directly to DIA-NN; there is no `--convert_dotd` preprocessing option.
+
 ### Passing Extra Arguments to DIA-NN
 
 Use `--extra_args` to pass additional flags to all DIA-NN steps. The pipeline validates and strips flags it manages internally to prevent conflicts.
