@@ -66,8 +66,8 @@ workflow DIA {
     }
 
     // Version guard for model fine-tuning
-    if (params.enable_fine_tuning && VersionUtils.versionLessThan(params.diann_version, '2.0')) {
-        error("Model fine-tuning requires DIA-NN >= 2.0. Current version: ${params.diann_version}. Use -profile diann_v2_1_0 or later")
+    if (params.enable_fine_tuning && VersionUtils.versionLessThan(params.diann_version, '2.3.2')) {
+        error("Model fine-tuning requires DIA-NN >= 2.3.2. Current version: ${params.diann_version}. Use -profile diann_v2_3_2 or later")
     }
 
     // Warn about contradictory normalization flags
@@ -241,17 +241,22 @@ workflow DIA {
         ch_software_versions = ch_software_versions
             .mix(ASSEMBLE_EMPIRICAL_LIBRARY.out.versions)
         // Parse calibrated params from the assembly log on the head node
+        // Format changed in 2.5.0
         ch_parsed_vals = ASSEMBLE_EMPIRICAL_LIBRARY.out.log
             .map { log_file ->
+                def ms1 = "${params.mass_acc_ms1}"
+                def ms2 = "${params.mass_acc_ms2}"
+                def sw = "${params.scan_window}"
                 def match = log_file.text.readLines().find { it.contains("Averaged recommended settings") }
                 if (match) {
-                    def parts = match.trim().split(/\s+/)
-                    def ms2 = parts.size() > 10 ? parts[10].replaceAll(/[^0-9.]/, '') : "${params.mass_acc_ms2}"
-                    def ms1 = parts.size() > 14 ? parts[14].replaceAll(/[^0-9.]/, '') : "${params.mass_acc_ms1}"
-                    def sw  = parts.size() > 18 ? parts[18].replaceAll(/[^0-9.]/, '') : "${params.scan_window}"
-                    return "${ms2},${ms1},${sw}"
+                    def ms1_match = match =~ /MS1 accuracy\s*=\s*([0-9.]+)/
+                    if (ms1_match.find()) ms1 = ms1_match.group(1)
+                    def ms2_match = match =~ /(?:MS2|Mass) accuracy\s*=\s*([0-9.]+)/
+                    if (ms2_match.find()) ms2 = ms2_match.group(1)
+                    def sw_match = match =~ /Scan window\s*=\s*([0-9.]+)/
+                    if (sw_match.find()) sw = sw_match.group(1)
                 }
-                return "${params.mass_acc_ms2},${params.mass_acc_ms1},${params.scan_window}"
+                return "${ms2},${ms1},${sw}"
             }
         indiv_fin_analysis_in = ch_file_preparation_results
             .combine(ch_searchdb)
