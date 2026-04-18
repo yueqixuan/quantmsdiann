@@ -100,8 +100,8 @@ The pipeline uses the same workflow for DDA as DIA — the `--dda` flag is passe
 - `--reindex_mzml` (default: true) — Re-index mzML files before processing. Disable with `--reindex_mzml false` if files are already indexed.
 - `--mzml_statistics` (default: false) — Generate mzML statistics (parquet format) for QC.
 - `--mzml_features` (default: false) — Enable feature detection in mzML statistics.
-- `--convert_dotd` (default: false) — Convert Bruker .d files to mzML via tdf2mzml instead of passing natively to DIA-NN.
 
+Bruker `.d` files are supported natively by the current workflow and are passed directly to DIA-NN; there is no `--convert_dotd` preprocessing option.
 ### Passing Extra Arguments to DIA-NN
 
 Use `--extra_args` to pass additional flags to all DIA-NN steps. The pipeline validates and strips flags it manages internally to prevent conflicts.
