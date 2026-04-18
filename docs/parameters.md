@@ -27,7 +27,6 @@ This document lists every pipeline parameter organised by category. Default valu
 | `--reindex_mzml`    | boolean | `true`  | Force re-indexing of input mzML files at the start of the pipeline for safety.                                                |
 | `--mzml_statistics` | boolean | `false` | Compute MS1/MS2 statistics from mzML files. Generates `*_ms_info.parquet` files for QC. Bruker `.d` files are always skipped. |
 | `--mzml_features`   | boolean | `false` | Compute MS1-level features during the mzML statistics step. Only available for mzML files.                                    |
-| `--convert_dotd`    | boolean | `false` | Convert Bruker .d files to mzML format before processing.                                                                     |
 
 ## 4. Search Parameters
 
