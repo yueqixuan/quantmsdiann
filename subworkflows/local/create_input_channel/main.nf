@@ -12,6 +12,13 @@ workflow CREATE_INPUT_CHANNEL {
     main:
     ch_versions = channel.empty()
 
+    // Validate --local_input_type against supported local file formats when using --root_folder.
+    // Redundant with the schema enum, but still catches the case where schema validation is disabled.
+    def allowedLocalInputTypes = ['mzML', 'raw', 'd', 'dia']
+    if (params.root_folder && params.local_input_type && !allowedLocalInputTypes.contains(params.local_input_type)) {
+        exit(1, "ERROR: Unsupported --local_input_type '${params.local_input_type}'. Supported values: ${allowedLocalInputTypes.join(', ')}")
+    }
+
     // Always parse as SDRF using DIA-NN converter
     SDRF_PARSING(ch_sdrf)
     ch_versions = ch_versions.mix(SDRF_PARSING.out.versions)
@@ -21,11 +28,6 @@ workflow CREATE_INPUT_CHANNEL {
 
     // Extract experiment_id from the SDRF filename
     ch_experiment_id = ch_sdrf.map { sdrf_file -> file(sdrf_file).baseName }
-    def allowedLocalInputTypes = ['mzML', 'raw', 'd', 'dia']
-
-    if (params.root_folder && params.local_input_type && !allowedLocalInputTypes.contains(params.local_input_type)) {
-        exit(1, "ERROR: Unsupported --local_input_type '${params.local_input_type}'. Supported values: ${allowedLocalInputTypes.join(', ')}")
-    }
 
     ch_experiment_id
         .combine(ch_expdesign)
