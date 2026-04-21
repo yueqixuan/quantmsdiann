@@ -21,6 +21,11 @@ workflow CREATE_INPUT_CHANNEL {
 
     // Extract experiment_id from the SDRF filename
     ch_experiment_id = ch_sdrf.map { sdrf_file -> file(sdrf_file).baseName }
+    def allowedLocalInputTypes = ['mzML', 'raw', 'd', 'dia']
+
+    if (params.root_folder && params.local_input_type && !allowedLocalInputTypes.contains(params.local_input_type)) {
+        exit(1, "ERROR: Unsupported --local_input_type '${params.local_input_type}'. Supported values: ${allowedLocalInputTypes.join(', ')}")
+    }
 
     ch_experiment_id
         .combine(ch_expdesign)
