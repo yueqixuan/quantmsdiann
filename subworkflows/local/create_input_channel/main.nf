@@ -14,7 +14,7 @@ workflow CREATE_INPUT_CHANNEL {
 
     // Validate --local_input_type against supported local file formats when using --root_folder.
     // Redundant with the schema enum, but still catches the case where schema validation is disabled.
-    def allowedLocalInputTypes = ['mzML', 'raw', 'd', 'dia']
+    def allowedLocalInputTypes = ['mzML', 'raw', 'd', 'dia', 'd.tar', 'd.tar.gz', 'd.zip']
     if (params.root_folder && params.local_input_type && !allowedLocalInputTypes.contains(params.local_input_type)) {
         exit(1, "ERROR: Unsupported --local_input_type '${params.local_input_type}'. Supported values: ${allowedLocalInputTypes.join(', ')}")
     }
