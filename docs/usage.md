@@ -43,11 +43,11 @@ The pipeline includes several preprocessing steps that can be controlled via par
 
   DIA-NN 2.1.0 (2025-03-25) added native Thermo `.raw` support on Linux, so the conversion step is no longer strictly required. Skipping it saves one container invocation and an I/O pass per `.raw` file — non-trivial on Astral-scale datasets.
 
-  | Setting                   | Behaviour                                                                                                             |
-  | ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-  | unset (default)           | Auto: convert via TRFP for DIA-NN < 2.1.0, pass `.raw` through natively for DIA-NN >= 2.1.0.                          |
-  | `--mzml_convert true`     | Always convert `.raw` to `.mzML` via TRFP. Use this to enable `--mzml_statistics`, or as a workaround for DIA-NN bugs. |
-  | `--mzml_convert false`    | Never convert. Pass `.raw` files straight to DIA-NN. Requires DIA-NN >= 2.1.0 (fails fast otherwise).                 |
+  | Setting                | Behaviour                                                                                                              |
+  | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+  | unset (default)        | Auto: convert via TRFP for DIA-NN < 2.1.0, pass `.raw` through natively for DIA-NN >= 2.1.0.                           |
+  | `--mzml_convert true`  | Always convert `.raw` to `.mzML` via TRFP. Use this to enable `--mzml_statistics`, or as a workaround for DIA-NN bugs. |
+  | `--mzml_convert false` | Never convert. Pass `.raw` files straight to DIA-NN. Requires DIA-NN >= 2.1.0 (fails fast otherwise).                  |
 
   The parameter has no effect when no `.raw` files are present in the input (e.g. all `.mzML`, `.d`, or `.dia`), or when `--local_input_type mzML` is combined with `--root_folder` so no `.raw` extensions reach the file-preparation branching step — the pipeline will emit a warning in that case.
 
