@@ -51,8 +51,9 @@
                     "type": "string",
                     "description": "Overwrite the file type/extension of the filename as specified in the SDRF",
                     "fa_icon": "fas fa-file-invoice",
-                    "default": "mzML",
-                    "help_text": "If the above [`--root_folder`](#root_folder) was given to load local input files, this overwrites the file type/extension of\nthe filename as specified in the SDRF. Usually used in case you have an mzML-converted version of the files already. Needs to be\none of 'mzML', 'raw', 'd', or 'dia' (the letter cases should match your files exactly). Compressed variants (.gz, .tar, .tar.gz, .zip) are supported for 'mzML', 'raw', and 'd' formats."
+                    "default": "raw",
+                    "enum": ["mzML", "raw", "d", "dia", "d.tar", "d.tar.gz", "d.zip"],
+                    "help_text": "If the above [`--root_folder`](#root_folder) was given to load local input files, this overwrites the file type/extension of\nthe filename as specified in the SDRF. Usually used in case you have an mzML-converted version of the files already. Needs to be\none of 'mzML', 'raw', 'd', or 'dia' (the letter cases should match your files exactly). For Bruker `.d` data, compressed archive variants `.d.tar`, `.d.tar.gz`, and `.d.zip` are also accepted and are decompressed automatically."
                 }
             }
         },
