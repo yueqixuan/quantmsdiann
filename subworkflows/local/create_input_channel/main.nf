@@ -19,8 +19,8 @@ workflow CREATE_INPUT_CHANNEL {
         exit(1, "ERROR: Unsupported --local_input_type '${params.local_input_type}'. Supported values: ${allowedLocalInputTypes.join(', ')}")
     }
 
-    // Known raw-data extensions (order matters: strip longest/compound ones first
-    // so 'sample.d.zip' -> 'sample', not 'sample.d').
+    // Known raw-data extensions; order matters, so strip longest/compound ones first
+    // so 'sample.d.zip' -> 'sample', not 'sample.d'.
     def knownRawExts = ['.d.tar.gz', '.d.tar', '.d.zip', '.mzML.gz', '.raw.gz',
                         '.mzML', '.raw', '.dia', '.d']
 
@@ -49,7 +49,12 @@ workflow CREATE_INPUT_CHANNEL {
                     // compound suffixes like .d.zip / .d.tar.gz from the SDRF),
                     // then append the target extension.
                     def stem = filestr
-                    def matched = knownRawExts.find { stem.endsWith(it) }
+                    def stemLower = stem.toLowerCase()
+
+                    def matched = knownRawExts.find { ext ->
+                        stemLower.endsWith(ext.toLowerCase())
+                    }
+
                     if (matched) {
                         stem = stem.substring(0, stem.length() - matched.length())
                     } else if (stem.lastIndexOf('.') > 0) {
