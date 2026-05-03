@@ -8,6 +8,7 @@ include { SDRF_PARSING } from '../../../modules/local/sdrf_parsing/main'
 workflow CREATE_INPUT_CHANNEL {
     take:
     ch_sdrf
+    ch_downloaded_files  // collected list of [name, path] pairs from PRIDEPY_DOWNLOAD, or empty list
 
     main:
     ch_versions = channel.empty()
@@ -66,10 +67,11 @@ workflow CREATE_INPUT_CHANNEL {
             return [filestr, experiment_id, row]
         }
         .groupTuple(by: 0)
-        .map { filestr, experiment_ids, rows ->
+        .combine(ch_downloaded_files)
+        .map { filestr, experiment_ids, rows, downloaded_files ->
             def experiment_id = experiment_ids[0]
             def wrapper = [acquisition_method: "", experiment_id: experiment_id]
-            return create_meta_channel_grouped(filestr, rows, wrapper)
+            return create_meta_channel_grouped(filestr, rows, wrapper, downloaded_files)
         }
         .set { ch_meta_config_dia }
 
@@ -81,7 +83,7 @@ workflow CREATE_INPUT_CHANNEL {
 }
 
 // Function to get list of [meta, [ spectra_files ]]
-def create_meta_channel_grouped(String filestr, List rows, Map wrapper) {
+def create_meta_channel_grouped(String filestr, List rows, Map wrapper, List downloaded_files) {
     def meta = [:]
 
     def base_row = rows[0]
@@ -90,6 +92,16 @@ def create_meta_channel_grouped(String filestr, List rows, Map wrapper) {
     def dotIndex = fileName.lastIndexOf('.')
     meta.id = dotIndex > 0 ? fileName.take(dotIndex) : fileName
     meta.experiment_id = wrapper.experiment_id
+
+    // Check pridepy downloaded files for pre-downloaded spectra
+    if (downloaded_files) {
+        def fname = file(filestr).name
+        def pairs = downloaded_files.collate(2)
+        def match = pairs.find { it[0] == fname }
+        if (match) {
+            filestr = match[1].toString()
+        }
+    }
 
     // existence check
     if (!file(filestr).exists()) {

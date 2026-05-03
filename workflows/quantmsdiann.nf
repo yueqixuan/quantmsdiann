@@ -19,6 +19,7 @@ include { CREATE_INPUT_CHANNEL } from '../subworkflows/local/create_input_channe
 
 // Modules import from the pipeline
 include { PMULTIQC as SUMMARY_PIPELINE } from '../modules/local/pmultiqc/main'
+include { PRIDEPY_DOWNLOAD } from '../modules/bigbio/pridepy/main'
 
 /*
 ========================================================================================
@@ -42,10 +43,29 @@ workflow QUANTMSDIANN {
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
 
     //
+    // MODULE: PRIDEPY_DOWNLOAD — Optional pre-download of raw files from PRIDE
+    //
+    if (params.pridepy_download) {
+        if (!params.project_accession) {
+            error("--pridepy_download requires --project_accession (e.g. PXD001819)")
+        }
+        ch_pridepy_meta = channel.value([id: params.project_accession])
+        PRIDEPY_DOWNLOAD(ch_pridepy_meta)
+        ch_versions = ch_versions.mix(PRIDEPY_DOWNLOAD.out.versions)
+        // Flatten tuple [meta, files...] into a name→path map for downstream lookup
+        ch_downloaded_files = PRIDEPY_DOWNLOAD.out.spectra
+            .transpose()
+            .map { meta, f -> [f.name, f] }
+    } else {
+        ch_downloaded_files = channel.empty()
+    }
+
+    //
     // SUBWORKFLOW: Create input channel
     //
     CREATE_INPUT_CHANNEL(
-        INPUT_CHECK.out.ch_input_file
+        INPUT_CHECK.out.ch_input_file,
+        ch_downloaded_files.collect().map { [it] }
     )
     ch_versions = ch_versions.mix(CREATE_INPUT_CHANNEL.out.versions)
 
