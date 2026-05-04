@@ -27,7 +27,7 @@ The input file must be in [Sample-to-data-relationship format (SDRF)](https://pu
 | Sample 3    | Homo sapiens              | not available                  | not available            | 1                                     | run 3      | proteomic profiling by mass spectrometry | 1                            | LFQ_Astral_DIA_Optimized_TE_15min_50ng_Condition_C_REP1.raw | https://ftp.pride.ebi.ac.uk/pride/data/archive/2026/02/PXD071205/LFQ_Astral_DIA_Optimized_TE_15min_50ng_Condition_C_REP1.raw | 1                            | label free sample | NT=Orbitrap Astral;AC=MS:1003378 | data-independent acquisition                | NT=Trypsin/P                    | NT=Carbamidomethyl;AC=UNIMOD:4;MT=Fixed;PP=Anywhere;TA=C | 10 ppm                            | 20 ppm                           | Condition_C_TE_15min_50ng |
 | ...         | ...                       | ...                            | ...                      | ...                                   | ...        | ...                                      | ...                          | ...                                                         | ...                                                                                                                          | ...                          | ...               | ...                              | ...                                         | ...                             | ...                                                      | ...                               | ...                              | ...                       |
 
-You can download our ready-to-use minimal SDRF templates [here](docs/minimal_sdrf_example/PXD071205_min.sdrf.tsv).
+You can download our ready-to-use minimal SDRF templates [here](minimal_sdrf_example/PXD071205_min.sdrf.tsv).
 
 #### How to adjust for different acquisition methods
 
@@ -44,7 +44,7 @@ While the core SDRF columns remain the same, you need to adjust specific values 
 | Sample_C_rep2 | Homo sapiens | cell culture | not available | 1 | run 2 | proteomic profiling by mass spectrometry | 2 | wJD804.raw | ftp://massive-ftp.ucsd.edu/v04/MSV000088302/raw/wJD804.raw | 1 | MTRAQ8 | NT=Q Exactive;AC=MS:1001911 | data-independent acquisition | NT=Trypsin;AC=MS:1001251 | NT=Carbamidomethyl;AC=UNIMOD:4;MT=Fixed;PP=Anywhere;TA=C | 5 ppm | 10 ppm | Sample_C |
 | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
 
-You can download our ready-to-use minimal SDRF templates [here](docs/minimal_sdrf_example/MSV000088302_min.sdrf.tsv).
+You can download our ready-to-use minimal SDRF templates [here](minimal_sdrf_example/MSV000088302_min.sdrf.tsv).
 
 ### Supported file formats
 
