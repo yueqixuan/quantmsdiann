@@ -1,6 +1,6 @@
 process WIFF_CONVERT {
     tag "$meta.id"
-    label 'process_high'
+    label 'process_single'
 
     container "quay.io/wiffconverter:0.10"
 
@@ -14,6 +14,7 @@ process WIFF_CONVERT {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     def wiff_main = wiff_files.find { it.name.endsWith('.wiff') }
+    def tool_version = task.container ? task.container.split(':').last() : '0.10'
 
     """
     export HOME=/tmp
@@ -24,7 +25,7 @@ process WIFF_CONVERT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        wiffconverter: 0.10
+        wiffconverter: ${tool_version}
     END_VERSIONS
     """
 }
