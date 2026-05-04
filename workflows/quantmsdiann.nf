@@ -52,14 +52,18 @@ workflow QUANTMSDIANN {
         ch_pridepy_meta = channel.value([id: params.project_accession])
         PRIDEPY_DOWNLOAD(ch_pridepy_meta)
         ch_versions = ch_versions.mix(PRIDEPY_DOWNLOAD.out.versions)
-        // Flatten tuple [meta, files...] into one [name, path] pair per file.
-        // The module's spectra glob can emit a List<Path>, so normalize via flatMap.
+        // Normalize spectra (the glob can emit a List<Path>) into one [name, path]
+        // pair per file, then collect into a single list and wrap in a 1-tuple so
+        // .combine() concatenates the whole list as one extra element downstream.
         ch_downloaded_files = PRIDEPY_DOWNLOAD.out.spectra
             .flatMap { _meta, files -> (files instanceof List ? files : [files]).collect { f -> [f.name, f] } }
             .collect()
             .ifEmpty([])
+            .map { [it] }
     } else {
-        ch_downloaded_files = channel.value([])
+        // 1-tuple containing an empty list, so .combine() always adds exactly one
+        // extra element regardless of whether pridepy ran.
+        ch_downloaded_files = channel.value([[]])
     }
 
     //
