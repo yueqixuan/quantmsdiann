@@ -57,6 +57,10 @@ jobs:
           git config push.default upstream
           git add .
           git status
+          if git diff --cached --quiet; then
+            echo "No changes to commit; prek reported failure but did not modify files."
+            exit 0
+          fi
           git commit -m "[automated] Fix code linting"
           git push
 
