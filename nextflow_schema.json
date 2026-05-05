@@ -134,10 +134,10 @@
             "properties": {
                 "reindex_mzml": {
                     "type": "boolean",
-                    "default": true,
-                    "description": "Force initial re-indexing of input mzML files. Also fixes some common mistakes in slightly incomplete/outdated mzMLs. (Default: true for safety)",
+                    "default": false,
+                    "description": "Force initial re-indexing of input mzML files. Also fixes some common mistakes in slightly incomplete/outdated mzMLs. (Default: false; only needed for user-supplied unindexed mzML — TRFP and the wiff converter already emit indexed mzML.)",
                     "fa_icon": "far fa-check-square",
-                    "help_text": "Force re-indexing in the beginning of the pipeline to make sure that indices are up-to-date."
+                    "help_text": "Force re-indexing in the beginning of the pipeline to make sure that indices are up-to-date. Enable only when supplying pre-built mzML files that may be unindexed; outputs from ThermoRawFileParser and the wiff converter are indexed already."
                 },
                 "mzml_statistics": {
                     "type": "boolean",
