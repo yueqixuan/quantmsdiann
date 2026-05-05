@@ -2,7 +2,9 @@ process WIFF_CONVERT {
     tag "$meta.id"
     label 'process_single'
 
-    container "quay.io/wiffconverter:0.10"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'oras://ghcr.io/bigbio/wiffconverter-sif:0.10' :
+        'ghcr.io/bigbio/wiffconverter:0.10' }"
 
     input:
     tuple val(meta), path(wiff_files)
