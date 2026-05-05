@@ -39,7 +39,7 @@ process PRIDEPY_DOWNLOAD {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        pridepy: 0.0.14
+        pridepy: \$(pip show pridepy | grep -i 'Version:' | awk '{print \$2}')
     END_VERSIONS
     """
 }
