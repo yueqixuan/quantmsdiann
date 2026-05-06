@@ -12,6 +12,13 @@
                             "modules"
                         ]
                     },
+                    "qpx": {
+                        "branch": "main",
+                        "git_sha": "2c6ea013e8f638080d29f594c2d634359df7590d",
+                        "installed_by": [
+                            "modules"
+                        ]
+                    },
                     "thermorawfileparser": {
                         "branch": "main",
                         "git_sha": "daddf26d8c36e28dffe673949dc340ed6387de9a",
