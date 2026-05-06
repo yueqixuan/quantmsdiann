@@ -625,7 +625,7 @@ nextflow run bigbio/quantmsdiann -profile verbose_modules,docker ...
 
 ## QPX Export (Experimental, 2.1.0)
 
-When `--enable_qpx_export` is set, the pipeline converts DIA-NN output to a [QPX Parquet](https://github.com/bigbio/qpx) dataset and a [MuData](https://mudata.readthedocs.io/) `.h5mu` file in a single step. Off by default.
+When `--enable_qpx_export` is set, the pipeline converts DIA-NN output to a [QPX Parquet](https://github.com/bigbio/qpx) dataset and a [MuData](https://mudata.readthedocs.io/) `.h5mu` file in a single step. On by default.
 
 ```bash
 nextflow run bigbio/quantmsdiann -profile docker \
@@ -647,7 +647,7 @@ This writes to `results/qpx/`:
 
 | Parameter             | Default | Description                                           |
 | --------------------- | ------- | ----------------------------------------------------- |
-| `--enable_qpx_export` | `false` | Export DIA-NN output to QPX Parquet + MuData          |
+| `--enable_qpx_export` | `true`  | Export DIA-NN output to QPX Parquet + MuData          |
 | `--project_accession` | `null`  | PRIDE/PX accession used as output prefix and metadata |
 
 ### Quick test

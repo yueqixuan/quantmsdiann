@@ -603,7 +603,7 @@
                     "type": "boolean",
                     "description": "Export DIA-NN output to QPX Parquet dataset and MuData .h5mu in a single step.",
                     "fa_icon": "fas fa-file-export",
-                    "default": false
+                    "default": true
                 }
             },
             "fa_icon": "fas fa-file-export"
