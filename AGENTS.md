@@ -40,7 +40,7 @@ This is **non-negotiable**. All code must pass formatting and style checks befor
 ### Core Technologies
 
 - **Nextflow**: >=25.10.4 (DSL2 syntax)
-- **nf-schema plugin**: 2.5.1 (parameter validation)
+- **nf-schema plugin**: 2.6.1 (parameter validation)
 - **nf-test**: Testing framework (config: `nf-test.config`)
 - **nf-core tools**: Pipeline standards and linting
 - **Containers**: Docker/Singularity/Apptainer/Podman (Conda deprecated)
