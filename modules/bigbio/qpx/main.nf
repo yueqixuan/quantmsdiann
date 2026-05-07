@@ -5,8 +5,8 @@ process QPX_EXPORT {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/qpx:'
-        : 'biocontainers/qpx:'}"
+        ? 'https://depot.galaxyproject.org/singularity/qpx:1.0.2--pyhdfd78af_0'
+        : 'biocontainers/qpx:1.0.2--pyhdfd78af_0'}"
 
     input:
     path(diann_report)
@@ -43,7 +43,7 @@ process QPX_EXPORT {
         --qvalue-threshold ${qvalue} \\
         --standardized-intensities \\
         --duckdb-threads ${task.cpus} \\
-        --duckdb-max-memory ${task.memory.toGiga()}GB \\
+        --duckdb-max-memory ${task.memory ? task.memory.toGiga() : 4}GB \\
         --compression zstd \\
         ${args}
 

@@ -14,7 +14,7 @@
                     },
                     "qpx": {
                         "branch": "main",
-                        "git_sha": "2c6ea013e8f638080d29f594c2d634359df7590d",
+                        "git_sha": "cffb20fdc51581b6e4fc6752a49e7b5ccc8f73bd",
                         "installed_by": [
                             "modules"
                         ]
