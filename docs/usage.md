@@ -56,8 +56,18 @@ The pipeline supports the following mass spectrometry data file formats:
 - **`.mzML`** - Open standard mzML files
 - **`.d`** - Bruker timsTOF files (processed natively by DIA-NN)
 - **`.dia`** - DIA-NN native binary format (passed through without conversion)
+- **`.wiff`** - SCIEX wiff files. Each `.wiff` is paired with its `.wiff.scan` companion file and converted to indexed `.mzML` via [WiffConverter](https://github.com/bigbio/quantms-containers) (`ghcr.io/bigbio/wiffconverter:0.10`).
 
 Compressed variants are supported for `.raw`, `.mzML`, and `.d` formats: `.gz`, `.tar`, `.tar.gz`, `.zip`.
+
+#### SDRF columns for `.wiff` data
+
+To process `.wiff` files, the input SDRF must include two extra columns that `parse_sdrf convert-diann` (sdrf-pipelines >= 0.1.4) emits into the experimental design TSV consumed by the pipeline:
+
+- `IsWiff` — boolean (`true`/`false`) marking the row as a SCIEX wiff file. When `true`, the workflow routes the file through `WIFF_CONVERT`.
+- `Associated_URI` — URI/path to the companion `.wiff.scan` file. If empty, the pipeline falls back to `<wiff URI>.scan`.
+
+When using `--root_folder`, set `--local_input_type wiff` so the pipeline strips the SDRF extension and looks for `<sample>.wiff` plus `<sample>.wiff.scan` in your local folder.
 
 ### Preprocessing Options
 

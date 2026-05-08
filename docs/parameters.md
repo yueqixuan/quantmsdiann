@@ -4,15 +4,15 @@ This document lists every pipeline parameter organised by category. Default valu
 
 ## 1. Input/Output Options
 
-| Parameter            | Type                    | Default     | Description                                                                                                                                                                                                  |
-| -------------------- | ----------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--input`            | string (file-path)      | _required_  | URI/path to an SDRF file (must use the `.sdrf.tsv` extension). Parameters such as enzyme, fixed modifications, and acquisition method are read from the SDRF.                                                |
-| `--database`         | string (file-path)      | _required_  | Path to a FASTA protein database. Must not contain decoys for DIA data.                                                                                                                                      |
-| `--outdir`           | string (directory-path) | `./results` | The output directory where results will be saved.                                                                                                                                                            |
-| `--publish_dir_mode` | string                  | `copy`      | Method used to save pipeline results. One of: `symlink`, `rellink`, `link`, `copy`, `copyNoFollow`, `move`.                                                                                                  |
-| `--root_folder`      | string                  | `null`      | Root folder in which spectrum files specified in the SDRF are searched. Used when you have a local copy of the experiment.                                                                                   |
-| `--local_input_type` | string                  | `raw`       | Overwrite the file type/extension of filenames in the SDRF when using `--root_folder`. One of: `mzML`, `raw`, `d`, `dia`, `d.tar`, `d.tar.gz`, `d.zip`. Bruker `.d` archives are decompressed automatically. |
-| `--email`            | string                  | `null`      | Email address for completion summary.                                                                                                                                                                        |
+| Parameter            | Type                    | Default     | Description                                                                                                                                                                                                                                                                        |
+| -------------------- | ----------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--input`            | string (file-path)      | _required_  | URI/path to an SDRF file (must use the `.sdrf.tsv` extension). Parameters such as enzyme, fixed modifications, and acquisition method are read from the SDRF.                                                                                                                      |
+| `--database`         | string (file-path)      | _required_  | Path to a FASTA protein database. Must not contain decoys for DIA data.                                                                                                                                                                                                            |
+| `--outdir`           | string (directory-path) | `./results` | The output directory where results will be saved.                                                                                                                                                                                                                                  |
+| `--publish_dir_mode` | string                  | `copy`      | Method used to save pipeline results. One of: `symlink`, `rellink`, `link`, `copy`, `copyNoFollow`, `move`.                                                                                                                                                                        |
+| `--root_folder`      | string                  | `null`      | Root folder in which spectrum files specified in the SDRF are searched. Used when you have a local copy of the experiment.                                                                                                                                                         |
+| `--local_input_type` | string                  | `raw`       | Overwrite the file type/extension of filenames in the SDRF when using `--root_folder`. One of: `mzML`, `raw`, `d`, `dia`, `d.tar`, `d.tar.gz`, `d.zip`, `wiff`. Bruker `.d` archives are decompressed automatically; SCIEX `.wiff` is paired with its `.wiff.scan` companion file. |
+| `--email`            | string                  | `null`      | Email address for completion summary.                                                                                                                                                                                                                                              |
 
 ## 2. SDRF Validation
 
@@ -24,7 +24,7 @@ This document lists every pipeline parameter organised by category. Default valu
 
 | Parameter           | Type    | Default | Description                                                                                                                                                                                                                                                                                  |
 | ------------------- | ------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--reindex_mzml`    | boolean | `true`  | Force re-indexing of input mzML files at the start of the pipeline for safety.                                                                                                                                                                                                               |
+| `--reindex_mzml`    | boolean | `false` | Force re-indexing of input mzML files at the start of the pipeline. Defaults to `false`: ThermoRawFileParser and the wiff converter both emit indexed mzML, and DIA-NN handles unindexed mzML on its own. Enable only when supplying pre-built mzML files that may be unindexed.             |
 | `--mzml_statistics` | boolean | `false` | Compute MS1/MS2 statistics from mzML files. Generates `*_ms_info.parquet` files for QC. Bruker `.d` files are always skipped.                                                                                                                                                                |
 | `--mzml_features`   | boolean | `false` | Compute MS1-level features during the mzML statistics step. Only available for mzML files.                                                                                                                                                                                                   |
 | `--mzml_convert`    | boolean | _auto_  | Convert Thermo `.raw` to `.mzML` via ThermoRawFileParser before DIA-NN. Unset = auto: convert when DIA-NN < 2.1.0, pass `.raw` through when DIA-NN >= 2.1.0. Set `false` to force native `.raw` (requires DIA-NN >= 2.1.0); set `true` to force conversion (e.g. to enable mzML statistics). |
@@ -162,7 +162,14 @@ The following DIA-NN 2.5.0 flags are not exposed as pipeline parameters but can 
 
 > **Note:** InfinDIA requires DIA-NN >= 2.3.0 and is considered experimental.
 
-## 14. Quality Control
+## 14. QPX Export (Experimental)
+
+| Parameter             | Type    | Default | Description                                                                                                                                           |
+| --------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--enable_qpx_export` | boolean | `false` | Export DIA-NN output to QPX Parquet dataset and MuData `.h5mu` in a single step. Requires `--project_accession`. Experimental (added in 2.1.0).       |
+| `--project_accession` | string  | `null`  | PRIDE project accession (e.g. `PXD001819`). Used as QPX output prefix and embedded as provenance. Also required when `--pridepy_download` is enabled. |
+
+## 15. Quality Control
 
 | Parameter               | Type    | Default | Description                                                                                     |
 | ----------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------- |
@@ -173,7 +180,7 @@ The following DIA-NN 2.5.0 flags are not exposed as pipeline parameters but can 
 | `--matrix_qvalue`       | number  | `0.01`  | Q-value threshold for DIA-NN output matrices (pr_matrix, pg_matrix). Maps to `--matrix-qvalue`. |
 | `--matrix_spec_q`       | number  | `0.05`  | Run-specific protein q-value for protein/gene matrices. Maps to `--matrix-spec-q`.              |
 
-## 15. MultiQC & Reporting
+## 16. MultiQC & Reporting
 
 | Parameter                       | Type               | Default | Description                                                                       |
 | ------------------------------- | ------------------ | ------- | --------------------------------------------------------------------------------- |
