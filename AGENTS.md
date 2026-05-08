@@ -113,7 +113,7 @@ The pipeline executes the following steps:
 8. **Individual Analysis** - Per-file search with empirical library (optional, for large datasets)
 9. **Final Quantification** - Summary quantification with protein/peptide/gene matrices
 10. **MSstats Format Conversion** - Converts DIA-NN report to MSstats-compatible CSV (`quantmsutilsc diann2msstats`)
-11. (Optional) **QPX Export** - Exports DIA-NN output to QPX Parquet dataset and MuData `.h5mu` when `--enable_qpx_export` is set (default: `true`)
+11. (Optional) **QPX Export** - Exports DIA-NN output to QPX Parquet dataset and MuData `.h5mu` when `--enable_qpx_export` is set
 12. **pmultiqc** - Quality control reporting
 
 ### DIA-NN Version-Specific Features

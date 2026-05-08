@@ -162,7 +162,14 @@ The following DIA-NN 2.5.0 flags are not exposed as pipeline parameters but can 
 
 > **Note:** InfinDIA requires DIA-NN >= 2.3.0 and is considered experimental.
 
-## 14. Quality Control
+## 14. QPX Export (Experimental)
+
+| Parameter             | Type    | Default | Description                                                                                                                                           |
+| --------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--enable_qpx_export` | boolean | `false` | Export DIA-NN output to QPX Parquet dataset and MuData `.h5mu` in a single step. Requires `--project_accession`. Experimental (added in 2.1.0).       |
+| `--project_accession` | string  | `null`  | PRIDE project accession (e.g. `PXD001819`). Used as QPX output prefix and embedded as provenance. Also required when `--pridepy_download` is enabled. |
+
+## 15. Quality Control
 
 | Parameter               | Type    | Default | Description                                                                                     |
 | ----------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------- |
@@ -173,7 +180,7 @@ The following DIA-NN 2.5.0 flags are not exposed as pipeline parameters but can 
 | `--matrix_qvalue`       | number  | `0.01`  | Q-value threshold for DIA-NN output matrices (pr_matrix, pg_matrix). Maps to `--matrix-qvalue`. |
 | `--matrix_spec_q`       | number  | `0.05`  | Run-specific protein q-value for protein/gene matrices. Maps to `--matrix-spec-q`.              |
 
-## 15. MultiQC & Reporting
+## 16. MultiQC & Reporting
 
 | Parameter                       | Type               | Default | Description                                                                       |
 | ------------------------------- | ------------------ | ------- | --------------------------------------------------------------------------------- |
