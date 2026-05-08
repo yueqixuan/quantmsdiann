@@ -327,6 +327,9 @@ workflow DIA {
     qpx_dataset_ch = Channel.empty()
     mudata_ch      = Channel.empty()
     if (params.enable_qpx_export) {
+        if (!params.project_accession) {
+            error("--project_accession is required when --enable_qpx_export is set (used as the QPX output prefix and PRIDE/PX provenance metadata).")
+        }
         ch_sdrf_original = channel.fromPath(params.input, checkIfExists: true).first()
 
         QPX_EXPORT(

@@ -63,7 +63,7 @@ Compressed variants are supported for `.raw`, `.mzML`, and `.d` formats: `.gz`, 
 
 The pipeline includes several preprocessing steps that can be controlled via parameters:
 
-- **`--reindex_mzml`** (default: `true`) -- Force re-indexing of input mzML files at the start of the pipeline. This fixes common issues with slightly incomplete or outdated mzML files and is enabled by default for safety. Set to `false` only if you are certain your mzML files are well-formed.
+- **`--reindex_mzml`** (default: `false`) -- Force re-indexing of input mzML files at the start of the pipeline. This fixes common issues with slightly incomplete or outdated mzML files. Outputs from ThermoRawFileParser and the wiff converter are already indexed, so this is off by default; enable it only when supplying pre-built mzML files that may be unindexed.
 
 - **`--mzml_statistics`** (default: `false`) -- Compute MS1/MS2 statistics from mzML files. When enabled, `*_ms_info.parquet` files are generated for each mzML file and used in QC reporting. Bruker `.d` files are always skipped by this step.
 
@@ -92,7 +92,7 @@ The pipeline can optionally download raw files directly from [PRIDE Archive](htt
 
 ```bash
 nextflow run bigbio/quantmsdiann \
-  --input sdrf.tsv \
+  --input experiment.sdrf.tsv \
   --database proteins.fasta \
   --pridepy_download \
   --project_accession PXD001819 \
@@ -166,7 +166,7 @@ The pipeline uses the same workflow for DDA as DIA — the `--dda` flag is passe
 
 ### Preprocessing Options
 
-- `--reindex_mzml` (default: true) — Re-index mzML files before processing. Disable with `--reindex_mzml false` if files are already indexed.
+- `--reindex_mzml` (default: false) — Re-index mzML files before processing. Enable with `--reindex_mzml true` only when supplying pre-built mzML files that may be unindexed (TRFP and the wiff converter already emit indexed mzML).
 - `--mzml_statistics` (default: false) — Generate mzML statistics (parquet format) for QC.
 - `--mzml_features` (default: false) — Enable feature detection in mzML statistics.
 
@@ -694,11 +694,11 @@ nextflow run bigbio/quantmsdiann -profile verbose_modules,docker ...
 
 ## QPX Export (Experimental, 2.1.0)
 
-When `--enable_qpx_export` is set, the pipeline converts DIA-NN output to a [QPX Parquet](https://github.com/bigbio/qpx) dataset and a [MuData](https://mudata.readthedocs.io/) `.h5mu` file in a single step. On by default.
+When `--enable_qpx_export` is set, the pipeline converts DIA-NN output to a [QPX Parquet](https://github.com/bigbio/qpx) dataset and a [MuData](https://mudata.readthedocs.io/) `.h5mu` file in a single step. Disabled by default; enable with `--enable_qpx_export` and supply `--project_accession` (required when QPX export is on).
 
 ```bash
 nextflow run bigbio/quantmsdiann -profile docker \
-    --input sdrf.tsv --database db.fasta \
+    --input experiment.sdrf.tsv --database db.fasta \
     --enable_qpx_export \
     --project_accession PXD019909 \
     --outdir results
@@ -716,8 +716,8 @@ This writes to `results/qpx/`:
 
 | Parameter             | Default | Description                                           |
 | --------------------- | ------- | ----------------------------------------------------- |
-| `--enable_qpx_export` | `true`  | Export DIA-NN output to QPX Parquet + MuData          |
-| `--project_accession` | `null`  | PRIDE/PX accession used as output prefix and metadata |
+| `--enable_qpx_export` | `false` | Export DIA-NN output to QPX Parquet + MuData          |
+| `--project_accession` | `null`  | PRIDE/PX accession used as output prefix and metadata (required when `--enable_qpx_export`) |
 
 ### Quick test
 

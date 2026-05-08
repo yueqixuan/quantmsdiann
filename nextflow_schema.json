@@ -601,9 +601,10 @@
             "properties": {
                 "enable_qpx_export": {
                     "type": "boolean",
-                    "description": "Export DIA-NN output to QPX Parquet dataset and MuData .h5mu in a single step.",
+                    "description": "Export DIA-NN output to QPX Parquet dataset and MuData .h5mu in a single step. Requires --project_accession.",
+                    "help_text": "Experimental (2.1.0). Disabled by default; enable with `--enable_qpx_export` and supply `--project_accession` to set the output prefix and embed PRIDE/PX provenance into the QPX dataset and `.h5mu` metadata.",
                     "fa_icon": "fas fa-file-export",
-                    "default": true
+                    "default": false
                 }
             },
             "fa_icon": "fas fa-file-export"
@@ -833,6 +834,17 @@
         },
         {
             "$ref": "#/$defs/generic_options"
+        },
+        {
+            "if": {
+                "properties": {
+                    "enable_qpx_export": { "const": true }
+                },
+                "required": ["enable_qpx_export"]
+            },
+            "then": {
+                "required": ["project_accession"]
+            }
         }
     ]
 }
