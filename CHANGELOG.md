@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New module: `QPX_EXPORT` (`modules/bigbio/qpx/`)
 - New test profile: `test_dia_qpx`
 - New output directory: `results/qpx/` (Parquet dataset + `.h5mu`)
+- SCIEX `.wiff` + `.wiff.scan` format support via [WiffConverter](https://github.com/bigbio/quantms-containers) (`ghcr.io/bigbio/wiffconverter:0.10`). New module `WIFF_CONVERT` (`modules/local/utils/wiff_convert/`) routes `.wiff` files through wiff-to-mzML conversion in `FILE_PREPARATION`. Uses the `IsWiff` and `Associated_URI` columns now emitted by `parse_sdrf convert-diann` (sdrf-pipelines >= 0.1.4) to detect wiff rows and pair each `.wiff` with its `.wiff.scan` companion file. `wiff` is also accepted as a `--local_input_type`.
 
 ### `Changed`
 

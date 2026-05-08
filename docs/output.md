@@ -11,7 +11,7 @@ The directories listed below will be created in the results directory after the 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes DIA data using the following steps:
 
 1. (Optional) Raw files are downloaded from PRIDE Archive using pridepy
-2. RAW data is converted to mzML using ThermoRawFileParser (or .d/.dia files are handled natively)
+2. RAW data is converted to mzML using ThermoRawFileParser; SCIEX `.wiff` files are converted via WiffConverter; `.d` (Bruker) and `.dia` files are handled natively
 3. DIA-NN is used for identification and quantification of peptides and proteins
 4. DIA-NN report is converted to MSstats-compatible format
 5. Generation of QC reports using pmultiqc
